@@ -275,7 +275,8 @@ if df is not None and not df.empty:
     st.markdown("---")
     st.subheader("📋 Données")
 
-    styled = df_final.style.applymap(
+    # استعمال .map عوض .applymap باش يخدم فـ GitHub بلا مشاكل
+    styled = df_final.style.map(
         style_payment,
         subset=[c for c in ["Avance_50_Payé","Reste_50_Payé"] if c in df_final.columns]
     )
