@@ -1,186 +1,256 @@
 import streamlit as st
 import pandas as pd
-import os
 from fpdf import FPDF
 from datetime import date
+import os
 
-# ==========================================
-# 1. Configuration de la page
-# ==========================================
-st.set_page_config(page_title="PropMed ERP", layout="wide", page_icon="☀️")
+# --- 1. إعدادات الصفحة العامة ---
+st.set_page_config(page_title="PropMed ERP & Devis ☀️", layout="wide", page_icon="☀️")
 
-# Header design
-st.markdown("""
-    <style>
-    .main-header {
-        background-color: #1a4e8a;
-        padding: 20px;
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        margin-bottom: 25px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-# 2. Système de connexion
-# ==========================================
+# =========================
+# UTILISATEURS
+# =========================
 USERS = {"admin": "1234", "jihane": "1111"}
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+# =========================
+# CONNEXION
+# =========================
 if not st.session_state.logged_in:
-    st.markdown('<div class="main-header"><h1>🔐 Connexion - PropMed ERP</h1></div>', unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        u = st.text_input("Nom d'utilisateur")
-        p = st.text_input("Mot de passe", type="password")
-
-        if st.button("Se connecter", use_container_width=True):
-            if u in USERS and USERS[u] == p:
-                st.session_state.logged_in = True
-                st.session_state.user = u
-                st.rerun()
-            else:
-                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
-
+    st.title("🔐 Connexion ERP Solaire")
+    u = st.text_input("Utilisateur")
+    p = st.text_input("Mot de passe", type="password")
+    if st.button("Se connecter"):
+        if u in USERS and USERS[u] == p:
+            st.session_state.logged_in = True
+            st.session_state.user = u
+            st.rerun()
+        else:
+            st.error("❌ Erreur")
     st.stop()
 
-# ==========================================
-# 3. Fonctions (Inventaire & PDF)
-# ==========================================
+# =========================================================
+# SIDEBAR NAVIGATION (التحكم في النوافذ)
+# =========================================================
+st.sidebar.title("☀️ ERP Solaire")
+st.sidebar.write(f"👤 **{st.session_state.user}**")
+st.sidebar.markdown("---")
 
-def load_inventory(file_path):
-    if os.path.exists(file_path):
-        df = pd.read_excel(file_path)
+# اختيار الصفحة (Fenêtre)
+page = st.sidebar.radio("Menu 📋", ["Gestion Inventaire 📦", "Générateur de Devis 📄"])
 
-        if "Quantity Ordered" in df.columns and "Quantity Used" in df.columns:
-            df["Quantity in Inventory"] = df["Quantity Ordered"].fillna(0) - df["Quantity Used"].fillna(0)
-
-        return df
-    return pd.DataFrame()
-
-class PropMedPDF(FPDF):
-    def header(self):
-        self.set_font('Arial', 'B', 22)
-        self.set_text_color(26, 78, 138)
-        self.text(10, 22, "PropMed")
-
-        self.set_font('Arial', '', 9)
-        self.set_text_color(100, 100, 100)
-        self.text(10, 28, "Solutions Solaires - Tanger, Maroc")
-
-        self.set_fill_color(26, 78, 138)
-        self.rect(110, 10, 90, 25, 'F')
-
-        self.set_text_color(255, 255, 255)
-        self.set_font('Arial', 'B', 16)
-        self.set_xy(110, 15)
-        self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '')}", 0, 1, 'C')
-
-    def footer(self):
-        self.set_y(-20)
-        self.set_font('Arial', 'I', 8)
-        self.set_text_color(150, 150, 150)
-        self.cell(0, 10, "PropMed SARL | Tanger | RC: 137001 | IF: 53625661", 0, 0, 'C')
-
-# ==========================================
-# 4. Navigation
-# ==========================================
-st.sidebar.markdown(f"### 👤 Connecté : {st.session_state.user.upper()}")
-
-choice = st.sidebar.radio("Menu principal 📋", ["📊 Tableau de bord & Stock", "📄 Créer un Devis"])
-
-if st.sidebar.button("Se déconnecter 🚪"):
+if st.sidebar.button("Déconnexion 🚪"):
     st.session_state.logged_in = False
     st.rerun()
 
-# ==========================================
-# 5. Interface Stock
-# ==========================================
-if choice == "📊 Tableau de bord & Stock":
-    st.markdown('<div class="main-header"><h1>📦 Gestion du stock</h1></div>', unsafe_allow_html=True)
+# =========================================================
+# FENÊTRE 1: GESTION INVENTAIRE (الكود الثاني ديالك)
+# =========================================================
+if page == "Gestion Inventaire 📦":
+    FILE_NAME = "PropMed Inventory (1) (3).xlsx"
 
-    file_inv = "PropMed Inventory (1) (3).xlsx"
-    df_inv = load_inventory(file_inv)
+    def calculate_metrics(df_to_calc):
+        if df_to_calc is None or df_to_calc.empty:
+            return df_to_calc
+        cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
+        for col in cols_to_fix:
+            if col in df_to_calc.columns:
+                df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
+        if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
+            df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
+        return df_to_calc
 
-    if not df_inv.empty:
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Total commandé", int(df_inv["Quantity Ordered"].sum()))
-        c2.metric("Total utilisé", int(df_inv["Quantity Used"].sum()))
-        c3.metric("Stock disponible", int(df_inv["Quantity in Inventory"].sum()))
+    def load_data():
+        if os.path.exists(FILE_NAME):
+            try:
+                df = pd.read_excel(FILE_NAME, engine='openpyxl')
+                df = df.dropna(how='all')
+                if "Status" not in df.columns:
+                    df["Status"] = "En attente"
+            except Exception as e:
+                st.error(f"Erreur Excel: {e}")
+                return pd.DataFrame()
+        else:
+            columns = ["Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "HS-Code - Morocco", "Date", "Status"]
+            df = pd.DataFrame(columns=columns)
+        return calculate_metrics(df)
 
-        st.divider()
-        st.subheader("📝 Modifier le stock")
+    def save_data(df_to_save):
+        try:
+            df_final_save = calculate_metrics(df_to_save)
+            df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
+            st.success("✅ Données enregistrées dans Excel !")
+            return True
+        except PermissionError:
+            st.error("❌ Ferme le fichier Excel d'abord !")
+            return False
 
-        edited_df = st.data_editor(df_inv, num_rows="dynamic", use_container_width=True)
-
-        if st.button("💾 Enregistrer dans Excel"):
-            edited_df.to_excel(file_inv, index=False)
-            st.success("✅ Fichier Excel mis à jour avec succès !")
+    df_raw = load_data()
+    
+    st.sidebar.subheader("🔍 Filtres de recherche")
+    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist()])
+    selected_id = st.sidebar.selectbox("Filtrer par Shipment No. (ID)", all_ids)
+    
+    if "Status" in df_raw.columns:
+        all_status = ["Tous"] + sorted(df_raw["Status"].unique().tolist())
     else:
-        st.warning("⚠️ Fichier stock introuvable ou vide.")
+        all_status = ["Tous", "En attente", "Livré", "Facturé"]
+    selected_status = st.sidebar.selectbox("Filtrer par Statut", all_status)
 
-# ==========================================
-# 6. Interface Devis
-# ==========================================
-elif choice == "📄 Créer un Devis":
-    st.markdown('<div class="main-header"><h1>📄 Nouveau Devis</h1></div>', unsafe_allow_html=True)
+    df_display = df_raw.copy()
+    if selected_id != "Tous":
+        df_display = df_display[df_display["Shipment No."].astype(str) == selected_id]
+    if selected_status != "Tous":
+        df_display = df_display[df_display["Status"] == selected_status]
 
-    if 'items_list' not in st.session_state:
-        st.session_state.items_list = []
+    st.title("📦 Gestion de l'inventaire")
+    st.info(f"Affichage de **{len(df_display)}** lignes après filtrage.")
 
-    with st.expander("📝 Informations client", expanded=True):
-        col_a, col_b = st.columns(2)
-        st.session_state.devis_no = col_a.text_input("N° Devis", "042110")
-        client = col_b.text_input("Nom du client", "Jihane")
+    edited_df = st.data_editor(df_display, num_rows="dynamic", use_container_width=True, key="main_editor")
 
-    st.subheader("🛒 Ajouter des articles")
+    if st.button("💾 Sauvegarder les modifications"):
+        if selected_id == "Tous" and selected_status == "Tous":
+            final_df = edited_df
+        else:
+            df_not_in_view = df_raw.drop(df_display.index)
+            final_df = pd.concat([df_not_in_view, edited_df], ignore_index=True)
+        if save_data(final_df):
+            st.rerun()
 
+    st.markdown("---")
+    st.subheader("🌐 Aperçu global (sans filtres)")
+    st.dataframe(df_raw, use_container_width=True)
+
+# =========================================================
+# FENÊTRE 2: GÉNÉRATEUR DE DEVIS (الكود الأول ديالك)
+# =========================================================
+elif page == "Générateur de Devis 📄":
     try:
-        base_art = pd.read_excel("Classeur1.xlsx", sheet_name="lista_items")
+        df_base = pd.read_excel("Classeur1.xlsx", sheet_name="lista_items")
+    except Exception as e:
+        st.error(f"Erreur de lecture du fichier Excel: {e}")
+        df_base = pd.DataFrame(columns=['Code article', 'Désignation', 'P.U. HT (MAD)'])
 
-        selected_art = st.selectbox("Choisir un article", base_art['Code article'].unique())
-        qte_art = st.number_input("Quantité", min_value=1, value=1)
+    class PropMedPDF(FPDF):
+        def header(self):
+            self.set_font('Arial', 'B', 22)
+            self.set_text_color(26, 78, 138)
+            self.text(10, 22, "PropMed")
+            self.set_font('Arial', '', 9)
+            self.set_text_color(100, 100, 100)
+            self.text(10, 28, "Solar Solutions - Tanger, Maroc")
+            self.set_fill_color(26, 78, 138)
+            self.rect(110, 10, 90, 25, 'F')
+            self.set_text_color(255, 255, 255)
+            self.set_font('Arial', 'B', 16)
+            self.set_xy(110, 15)
+            self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '---')}", 0, 1, 'C')
+            self.set_font('Arial', '', 9)
+            self.set_xy(110, 23)
+            self.cell(90, 10, f"Systeme PV Hybride - {date.today().year}", 0, 1, 'C')
 
-        if st.button("➕ Ajouter"):
-            row = base_art[base_art['Code article'] == selected_art].iloc[0]
+        def footer(self):
+            self.set_y(-20)
+            self.set_font('Arial', 'I', 8)
+            self.set_text_color(150, 150, 150)
+            line = "PropMed SARL | Tanger | RC: 137001 | IF: 53625661 | ICE: 003241314000056"
+            self.cell(0, 10, line, 0, 0, 'C')
 
-            st.session_state.items_list.append({
-                "Code": selected_art,
-                "Désignation": row['Désignation'],
-                "Quantité": qte_art,
-                "P.U HT": row['P.U. HT (MAD)'],
-                "Total": qte_art * row['P.U. HT (MAD)']
+    if 'devis_items' not in st.session_state:
+        st.session_state.devis_items = []
+
+    st.markdown(f"""
+        <div style="background-color:#1a4e8a; padding:20px; border-radius:10px; color:white; text-align:center; margin-bottom:20px;">
+            <h1 style="margin:0;">PropMed Solar Solutions</h1>
+            <p style="margin:0;">Générateur de Devis Professionnel</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("📋 Informations du Devis")
+    st.session_state.devis_no = st.text_input("N° Devis", "042110")
+    st.session_state.date_devis = st.date_input("Date du Devis", date.today())
+    client_name = st.text_input("Nom du Client", "Jihane")
+    validite_offre = st.text_input("Validité de l'offre", "10 Jours")
+    delai_exec = st.text_input("Délai d'exécution", "3 Jours")
+    modalites_paie = st.text_area("Modalités de paiement", "50 % à la commande / 50 % à la mise en service")
+
+    st.divider()
+    st.subheader("📦 Gestion des Articles")
+    mode_ajout = st.radio("Mode d'ajout :", ["Sélectionner depuis la base", "Saisie manuelle"])
+
+    if mode_ajout == "Sélectionner depuis la base":
+        if not df_base.empty:
+            code_sel = st.selectbox("Sélectionner un article", df_base['Code article'].unique())
+            qte_sel = st.number_input("Quantité", min_value=1, value=1, key="qte_base")
+            if st.button("➕ Ajouter l'article sélectionné"):
+                row = df_base[df_base['Code article'] == code_sel].iloc[0]
+                st.session_state.devis_items.append({
+                    "Code": code_sel, "Désignation": row['Désignation'], "Quantité": qte_sel,
+                    "P.U. HT": row['P.U. HT (MAD)'], "Montant HT": qte_sel * row['P.U. HT (MAD)']
+                })
+                st.rerun()
+    else:
+        m_code = st.text_input("Code Article (Manuel)")
+        m_desc = st.text_input("Désignation (Manuel)")
+        m_pu = st.number_input("Prix Unitaire HT (MAD)", min_value=0.0)
+        m_qte = st.number_input("Quantité ", min_value=1, value=1, key="qte_man")
+        if st.button("➕ Ajouter l'article manuellement"):
+            st.session_state.devis_items.append({
+                "Code": m_code, "Désignation": m_desc, "Quantité": m_qte, "P.U. HT": m_pu, "Montant HT": m_qte * m_pu
             })
             st.rerun()
 
-    except:
-        st.error("❌ Fichier 'Classeur1.xlsx' introuvable.")
-
-    if st.session_state.items_list:
-        df_temp = pd.DataFrame(st.session_state.items_list)
-        st.table(df_temp)
+    if st.session_state.devis_items:
+        df_current = pd.DataFrame(st.session_state.devis_items)
+        st.table(df_current)
+        total_ht = df_current['Montant HT'].sum()
+        tva_20 = total_ht * 0.2
+        total_ttc = total_ht + tva_20
+        st.write(f"**Total HT:** {total_ht:,.2f} MAD | **TVA 20%:** {tva_20:,.2f} MAD | **Total TTC:** {total_ttc:,.2f} MAD")
 
         if st.button("🗑️ Vider la liste"):
-            st.session_state.items_list = []
+            st.session_state.devis_items = []
+            if 'pdf_blob' in st.session_state: del st.session_state.pdf_blob
             st.rerun()
 
-        if st.button("📄 Télécharger le PDF"):
+        if st.button("📄 Générer le Devis PDF"):
             pdf = PropMedPDF()
             pdf.add_page()
+            pdf.set_y(40)
+            pdf.set_font('Arial', 'B', 10)
+            pdf.cell(0, 10, f"Client: {client_name}", 0, 1)
+            pdf.ln(5)
+            pdf.set_fill_color(26, 78, 138); pdf.set_text_color(255, 255, 255)
+            pdf.set_font('Arial', 'B', 9)
+            pdf.cell(30, 10, "Code", 1, 0, 'C', True); pdf.cell(90, 10, "Designation", 1, 0, 'C', True)
+            pdf.cell(15, 10, "Qte", 1, 0, 'C', True); pdf.cell(30, 10, "P.U. HT", 1, 0, 'C', True)
+            pdf.cell(30, 10, "Montant", 1, 1, 'C', True)
+            pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', '', 8)
+            for item in st.session_state.devis_items:
+                clean_d = str(item['Désignation']).encode('latin-1', 'replace').decode('latin-1')
+                pdf.cell(30, 8, str(item['Code']), 1)
+                pdf.cell(90, 8, clean_d[:55], 1)
+                pdf.cell(15, 8, str(item['Quantité']), 1, 0, 'C')
+                pdf.cell(30, 8, f"{item['P.U. HT']:,.2f}", 1, 0, 'R')
+                pdf.cell(30, 8, f"{item['Montant HT']:,.2f}", 1, 1, 'R')
+            pdf.ln(5); pdf.set_x(135); pdf.set_font('Arial', 'B', 9)
+            pdf.cell(35, 8, "Total HT", 1, 0); pdf.cell(30, 8, f"{total_ht:,.2f}", 1, 1, 'R')
+            pdf.set_x(135); pdf.cell(35, 8, "TVA 20%", 1, 0); pdf.cell(30, 8, f"{tva_20:,.2f}", 1, 1, 'R')
+            pdf.set_x(135); pdf.set_fill_color(0, 0, 0); pdf.set_text_color(255, 255, 255)
+            pdf.cell(35, 10, "NET A PAYER", 1, 0, '', True); pdf.cell(30, 10, f"{total_ttc:,.2f}", 1, 1, 'R', True)
+            pdf.ln(10); pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', 'B', 10)
+            pdf.cell(0, 8, "Conditions & Coordonnees Bancaires", "B", 1)
+            pdf.set_font('Arial', '', 8)
+            bank_txt = (f"Validite: {validite_offre} | Delai: {delai_exec}\n"
+                        f"Modalites: {modalites_paie}\n"
+                        f"Banque: Attijariwafa Bank | RIB: 007 640 0000903000016328 55")
+            pdf.multi_cell(0, 5, bank_txt)
+            st.session_state.pdf_blob = pdf.output(dest='S').encode('latin-1')
+            st.success("✅ PDF généré!")
 
-            pdf.set_font("Arial", size=12)
-            pdf.ln(40)
-            pdf.cell(0, 10, f"Client : {client}", 0, 1)
-
-            pdf_bytes = pdf.output(dest='S').encode('latin-1')
-
-            st.download_button(
-                "📥 Télécharger maintenant",
-                data=pdf_bytes,
-                file_name=f"Devis_{client}.pdf"
-            )
+        if 'pdf_blob' in st.session_state:
+            st.download_button(label="📥 Télécharger le PDF", data=st.session_state.pdf_blob, file_name=f"Devis_{client_name}.pdf", mime="application/pdf")
+    else:
+        st.info("Ajoutez des articles pour commencer.")
