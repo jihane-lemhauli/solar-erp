@@ -1,182 +1,186 @@
 import streamlit as st
 import pandas as pd
 import os
+from fpdf import FPDF
+from datetime import date
 
+# ==========================================
 # 1. Configuration de la page
-st.set_page_config(page_title="ERP Solaire ☀️", layout="wide", page_icon="☀️")
+# ==========================================
+st.set_page_config(page_title="PropMed ERP", layout="wide", page_icon="☀️")
 
-# =========================
-# UTILISATEURS
-# =========================
+# Header design
+st.markdown("""
+    <style>
+    .main-header {
+        background-color: #1a4e8a;
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# ==========================================
+# 2. Système de connexion
+# ==========================================
 USERS = {"admin": "1234", "jihane": "1111"}
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# =========================
-# CONFIGURATION DU FICHIER
-# =========================
-FILE_NAME = "PropMed Inventory (1) (3).xlsx"
-
-# =========================
-# FONCTION DE CALCUL AUTOMATIQUE
-# =========================
-def calculate_metrics(df_to_calc):
-    if df_to_calc is None or df_to_calc.empty:
-        return df_to_calc
-
-    cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
-    for col in cols_to_fix:
-        if col in df_to_calc.columns:
-            df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
-
-    if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
-        df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
-
-    return df_to_calc
-
-# =========================
-# LOAD DATA
-# =========================
-def load_data():
-    if os.path.exists(FILE_NAME):
-        try:
-            df = pd.read_excel(FILE_NAME, engine='openpyxl')
-            df = df.dropna(how='all')
-            
-            # Ila makanitch l-colonne Status f l-excel, t-creyaha
-            if "Status" not in df.columns:
-                df["Status"] = "En attente"
-                
-        except Exception as e:
-            st.error(f"Erreur Excel: {e}")
-            return pd.DataFrame()
-    else:
-        columns = ["Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "HS-Code - Morocco", "Date", "Status"]
-        df = pd.DataFrame(columns=columns)
-
-    return calculate_metrics(df)
-
-# =========================
-# SAVE DATA
-# =========================
-def save_data(df_to_save):
-    try:
-        df_final_save = calculate_metrics(df_to_save)
-        df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
-        st.success("✅ Données enregistrées dans Excel !")
-        return True
-    except PermissionError:
-        st.error("❌ Ferme le fichier Excel d'abord !")
-        return False
-
-# Chargement des données
-df_raw = load_data()
-
-# =========================
-# CONNEXION
-# =========================
 if not st.session_state.logged_in:
-    st.title("🔐 Connexion ERP Solaire")
-    u = st.text_input("Utilisateur")
-    p = st.text_input("Mot de passe", type="password")
-    if st.button("Se connecter"):
-        if u in USERS and USERS[u] == p:
-            st.session_state.logged_in = True
-            st.session_state.user = u
-            st.rerun()
-        else:
-            st.error("❌ Erreur")
+    st.markdown('<div class="main-header"><h1>🔐 Connexion - PropMed ERP</h1></div>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        u = st.text_input("Nom d'utilisateur")
+        p = st.text_input("Mot de passe", type="password")
+
+        if st.button("Se connecter", use_container_width=True):
+            if u in USERS and USERS[u] == p:
+                st.session_state.logged_in = True
+                st.session_state.user = u
+                st.rerun()
+            else:
+                st.error("❌ Nom d'utilisateur ou mot de passe incorrect")
+
     st.stop()
 
-# =========================
-# SIDEBAR (FILTRES)
-# =========================
-st.sidebar.title("☀️ ERP Solaire")
-st.sidebar.write(f"👤 **{st.session_state.user}**")
+# ==========================================
+# 3. Fonctions (Inventaire & PDF)
+# ==========================================
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("🔍 Filtres de recherche")
+def load_inventory(file_path):
+    if os.path.exists(file_path):
+        df = pd.read_excel(file_path)
 
-# 1. Filtre par Shipment ID (Client ID)
-all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist()])
-selected_id = st.sidebar.selectbox("Filtrer par Shipment No. (ID)", all_ids)
+        if "Quantity Ordered" in df.columns and "Quantity Used" in df.columns:
+            df["Quantity in Inventory"] = df["Quantity Ordered"].fillna(0) - df["Quantity Used"].fillna(0)
 
-# 2. Filtre par Statut
-if "Status" in df_raw.columns:
-    all_status = ["Tous"] + sorted(df_raw["Status"].unique().tolist())
-else:
-    all_status = ["Tous", "En attente", "Livré", "Facturé"]
-selected_status = st.sidebar.selectbox("Filtrer par Statut", all_status)
+        return df
+    return pd.DataFrame()
 
-st.sidebar.markdown("---")
+class PropMedPDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 22)
+        self.set_text_color(26, 78, 138)
+        self.text(10, 22, "PropMed")
 
-menu = st.sidebar.selectbox(
-    "Menu 📋",
-    ["Tableau de bord 📊", "Gestion Inventaire 📦"]
-)
+        self.set_font('Arial', '', 9)
+        self.set_text_color(100, 100, 100)
+        self.text(10, 28, "Solutions Solaires - Tanger, Maroc")
 
-if st.sidebar.button("Déconnexion 🚪"):
+        self.set_fill_color(26, 78, 138)
+        self.rect(110, 10, 90, 25, 'F')
+
+        self.set_text_color(255, 255, 255)
+        self.set_font('Arial', 'B', 16)
+        self.set_xy(110, 15)
+        self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '')}", 0, 1, 'C')
+
+    def footer(self):
+        self.set_y(-20)
+        self.set_font('Arial', 'I', 8)
+        self.set_text_color(150, 150, 150)
+        self.cell(0, 10, "PropMed SARL | Tanger | RC: 137001 | IF: 53625661", 0, 0, 'C')
+
+# ==========================================
+# 4. Navigation
+# ==========================================
+st.sidebar.markdown(f"### 👤 Connecté : {st.session_state.user.upper()}")
+
+choice = st.sidebar.radio("Menu principal 📋", ["📊 Tableau de bord & Stock", "📄 Créer un Devis"])
+
+if st.sidebar.button("Se déconnecter 🚪"):
     st.session_state.logged_in = False
     st.rerun()
 
-# =========================
-# APPLICATION DES FILTRES
-# =========================
-df_display = df_raw.copy()
+# ==========================================
+# 5. Interface Stock
+# ==========================================
+if choice == "📊 Tableau de bord & Stock":
+    st.markdown('<div class="main-header"><h1>📦 Gestion du stock</h1></div>', unsafe_allow_html=True)
 
-if selected_id != "Tous":
-    df_display = df_display[df_display["Shipment No."].astype(str) == selected_id]
+    file_inv = "PropMed Inventory (1) (3).xlsx"
+    df_inv = load_inventory(file_inv)
 
-if selected_status != "Tous":
-    df_display = df_display[df_display["Status"] == selected_status]
+    if not df_inv.empty:
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Total commandé", int(df_inv["Quantity Ordered"].sum()))
+        c2.metric("Total utilisé", int(df_inv["Quantity Used"].sum()))
+        c3.metric("Stock disponible", int(df_inv["Quantity in Inventory"].sum()))
 
-# =========================
-# DASHBOARD
-# =========================
-if menu == "Tableau de bord 📊":
-    st.title("Tableau de bord 📊")
-    
-    c1, c2, c3 = st.columns(3)
-    c1.metric("📦 Total Commandé", int(df_display["Quantity Ordered"].sum()))
-    c2.metric("📤 Total Utilisé", int(df_display["Quantity Used"].sum()))
-    c3.metric("🔋 Stock Dispo", int(df_display["Quantity in Inventory"].sum()))
+        st.divider()
+        st.subheader("📝 Modifier le stock")
 
-    st.subheader("Visualisation des stocks filtrés")
-    st.bar_chart(df_display.groupby("Shipment No.")["Quantity in Inventory"].sum())
+        edited_df = st.data_editor(df_inv, num_rows="dynamic", use_container_width=True)
 
-# =========================
-# GESTION INVENTAIRE
-# =========================
-elif menu == "Gestion Inventaire 📦":
-    st.title("📦 Gestion de l'inventaire")
-    st.info(f"Affichage de **{len(df_display)}** lignes après filtrage.")
+        if st.button("💾 Enregistrer dans Excel"):
+            edited_df.to_excel(file_inv, index=False)
+            st.success("✅ Fichier Excel mis à jour avec succès !")
+    else:
+        st.warning("⚠️ Fichier stock introuvable ou vide.")
 
-    # Éditeur de données
-    edited_df = st.data_editor(
-        df_display,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="main_editor"
-    )
+# ==========================================
+# 6. Interface Devis
+# ==========================================
+elif choice == "📄 Créer un Devis":
+    st.markdown('<div class="main-header"><h1>📄 Nouveau Devis</h1></div>', unsafe_allow_html=True)
 
-    if st.button("💾 Sauvegarder les modifications"):
-        # Fusionner les modifs filtrées avec la base de données globale
-        if selected_id == "Tous" and selected_status == "Tous":
-            # Si aucun filtre, on remplace tout
-            final_df = edited_df
-        else:
-            # Si filtre activé, on met à jour uniquement les lignes affichées
-            # On garde les lignes qui n'étaient pas dans l'affichage
-            df_not_in_view = df_raw.drop(df_display.index)
-            final_df = pd.concat([df_not_in_view, edited_df], ignore_index=True)
-        
-        if save_data(final_df):
+    if 'items_list' not in st.session_state:
+        st.session_state.items_list = []
+
+    with st.expander("📝 Informations client", expanded=True):
+        col_a, col_b = st.columns(2)
+        st.session_state.devis_no = col_a.text_input("N° Devis", "042110")
+        client = col_b.text_input("Nom du client", "Jihane")
+
+    st.subheader("🛒 Ajouter des articles")
+
+    try:
+        base_art = pd.read_excel("Classeur1.xlsx", sheet_name="lista_items")
+
+        selected_art = st.selectbox("Choisir un article", base_art['Code article'].unique())
+        qte_art = st.number_input("Quantité", min_value=1, value=1)
+
+        if st.button("➕ Ajouter"):
+            row = base_art[base_art['Code article'] == selected_art].iloc[0]
+
+            st.session_state.items_list.append({
+                "Code": selected_art,
+                "Désignation": row['Désignation'],
+                "Quantité": qte_art,
+                "P.U HT": row['P.U. HT (MAD)'],
+                "Total": qte_art * row['P.U. HT (MAD)']
+            })
             st.rerun()
 
-# =========================
-# VUE GLOBALE (Footer)
-# =========================
-st.markdown("---")
-st.subheader("🌐 Aperçu global (sans filtres)")
-st.dataframe(df_raw, use_container_width=True)
+    except:
+        st.error("❌ Fichier 'Classeur1.xlsx' introuvable.")
+
+    if st.session_state.items_list:
+        df_temp = pd.DataFrame(st.session_state.items_list)
+        st.table(df_temp)
+
+        if st.button("🗑️ Vider la liste"):
+            st.session_state.items_list = []
+            st.rerun()
+
+        if st.button("📄 Télécharger le PDF"):
+            pdf = PropMedPDF()
+            pdf.add_page()
+
+            pdf.set_font("Arial", size=12)
+            pdf.ln(40)
+            pdf.cell(0, 10, f"Client : {client}", 0, 1)
+
+            pdf_bytes = pdf.output(dest='S').encode('latin-1')
+
+            st.download_button(
+                "📥 Télécharger maintenant",
+                data=pdf_bytes,
+                file_name=f"Devis_{client}.pdf"
+            )
