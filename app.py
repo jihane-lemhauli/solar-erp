@@ -4,7 +4,7 @@ from fpdf import FPDF
 from datetime import date
 import os
 
-# --- 1. CONFIGURATION DE LA PAGE ---
+# --- 1. إعدادات الصفحة العامة ---
 st.set_page_config(page_title="PropMed ERP & Devis ☀️", layout="wide", page_icon="☀️")
 
 # =========================
@@ -32,7 +32,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =========================================================
-# NAVIGATION LATÉRALE (SIDEBAR)
+# SIDEBAR NAVIGATION
 # =========================================================
 st.sidebar.title("☀️ ERP Solaire")
 st.sidebar.write(f"👤 **{st.session_state.user}**")
@@ -53,12 +53,12 @@ if page == "Gestion Inventaire 📦":
     def calculate_metrics(df_to_calc):
         if df_to_calc is None or df_to_calc.empty:
             return df_to_calc
-        cols_to_fix = ["Quantité Commandée", "Quantité Utilisée", "Quantité en Stock"]
+        cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
         for col in cols_to_fix:
             if col in df_to_calc.columns:
                 df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
-        if "Quantité Commandée" in df_to_calc.columns and "Quantité Utilisée" in df_to_calc.columns:
-            df_to_calc["Quantité en Stock"] = df_to_calc["Quantité Commandée"] - df_to_calc["Quantité Utilisée"]
+        if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
+            df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
         return df_to_calc
 
     def load_data():
@@ -66,43 +66,43 @@ if page == "Gestion Inventaire 📦":
             try:
                 df = pd.read_excel(FILE_NAME, engine='openpyxl')
                 df = df.dropna(how='all')
-                if "Statut" not in df.columns:
-                    df["Statut"] = "En attente"
+                if "Status" not in df.columns:
+                    df["Status"] = "En attente"
                 return calculate_metrics(df)
             except Exception as e:
                 st.error(f"Erreur Excel: {e}")
                 return pd.DataFrame()
         else:
-            columns = ["N° Expédition", "Réf Article", "N° Article", "Description", "Quantité Commandée", "Quantité Utilisée", "Quantité en Stock", "Unité", "Code-HS Maroc", "Date", "Statut"]
+            columns = ["Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "HS-Code - Morocco", "Date", "Status"]
             return pd.DataFrame(columns=columns)
 
     def save_data(df_to_save):
         try:
             df_final_save = calculate_metrics(df_to_save)
             df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
-            st.success(f"✅ Données enregistrées directement dans '{FILE_NAME}' !")
+            st.success(f"✅ Dakchi t-tsajel direct f '{FILE_NAME}' !")
             return True
         except PermissionError:
-            st.error("❌ Erreur : Veuillez fermer le fichier Excel sur votre PC pour enregistrer !")
+            st.error("❌ Erreur: Khasek t-sedd l-fichye Excel f PC dyalk bach n-sauvegarder !")
             return False
 
     df_raw = load_data()
     
     st.sidebar.subheader("🔍 Filtres de recherche")
-    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["N° Expédition"].unique().tolist() if pd.notna(x)])
-    selected_id = st.sidebar.selectbox("Filtrer par N° Expédition (ID)", all_ids)
+    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist() if pd.notna(x)])
+    selected_id = st.sidebar.selectbox("Filtrer par Shipment No. (ID)", all_ids)
     
-    if "Statut" in df_raw.columns:
-        all_status = ["Tous"] + sorted([str(x) for x in df_raw["Statut"].unique().tolist() if pd.notna(x)])
+    if "Status" in df_raw.columns:
+        all_status = ["Tous"] + sorted([str(x) for x in df_raw["Status"].unique().tolist() if pd.notna(x)])
     else:
         all_status = ["Tous", "En attente", "Livré", "Facturé"]
     selected_status = st.sidebar.selectbox("Filtrer par Statut", all_status)
 
     df_display = df_raw.copy()
     if selected_id != "Tous":
-        df_display = df_display[df_display["N° Expédition"].astype(str) == selected_id]
+        df_display = df_display[df_display["Shipment No."].astype(str) == selected_id]
     if selected_status != "Tous":
-        df_display = df_display[df_display["Statut"] == selected_status]
+        df_display = df_display[df_display["Status"] == selected_status]
 
     st.title("📦 Gestion de l'inventaire")
     st.info(f"Affichage de **{len(df_display)}** lignes après filtrage.")
@@ -112,7 +112,7 @@ if page == "Gestion Inventaire 📦":
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("💾 Enregistrer directement dans Excel"):
+        if st.button("💾 Sauvegarder direct f Excel"):
             if selected_id == "Tous" and selected_status == "Tous":
                 final_df = edited_df
             else:
@@ -125,7 +125,7 @@ if page == "Gestion Inventaire 📦":
         if os.path.exists(FILE_NAME):
             with open(FILE_NAME, "rb") as f:
                 st.download_button(
-                    label="📥 Télécharger une copie (Sauvegarde)",
+                    label="📥 Télécharger une copie (Backup)",
                     data=f,
                     file_name=FILE_NAME,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -161,7 +161,7 @@ elif page == "Générateur de Devis 📄":
             self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '---')}", 0, 1, 'C')
             self.set_font('Arial', '', 9)
             self.set_xy(110, 23)
-            self.cell(90, 10, f"Système PV Hybride - {date.today().year}", 0, 1, 'C')
+            self.cell(90, 10, f"Systeme PV Hybride - {date.today().year}", 0, 1, 'C')
 
         def footer(self):
             self.set_y(-20)
@@ -218,7 +218,7 @@ elif page == "Générateur de Devis 📄":
         df_current = pd.DataFrame(st.session_state.devis_items)
         
         # --- Section Modifiable ---
-        st.info("💡 Vous pouvez modifier le prix ou la quantité directement dans le tableau ci-dessous.")
+        st.info("💡 T-qadri t-modifiy l-prix awla l-quantité direct f la table l-foq.")
         edited_items_df = st.data_editor(df_current, num_rows="dynamic", use_container_width=True, key="devis_editor")
         
         # Recalcul automatique du Montant HT pour chaque ligne
@@ -246,8 +246,8 @@ elif page == "Générateur de Devis 📄":
             pdf.ln(5)
             pdf.set_fill_color(26, 78, 138); pdf.set_text_color(255, 255, 255)
             pdf.set_font('Arial', 'B', 9)
-            pdf.cell(30, 10, "Code", 1, 0, 'C', True); pdf.cell(90, 10, "Désignation", 1, 0, 'C', True)
-            pdf.cell(15, 10, "Qté", 1, 0, 'C', True); pdf.cell(30, 10, "P.U. HT", 1, 0, 'C', True)
+            pdf.cell(30, 10, "Code", 1, 0, 'C', True); pdf.cell(90, 10, "Designation", 1, 0, 'C', True)
+            pdf.cell(15, 10, "Qte", 1, 0, 'C', True); pdf.cell(30, 10, "P.U. HT", 1, 0, 'C', True)
             pdf.cell(30, 10, "Montant", 1, 1, 'C', True)
             pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', '', 8)
             for item in st.session_state.devis_items:
@@ -263,14 +263,14 @@ elif page == "Générateur de Devis 📄":
             pdf.set_x(135); pdf.set_fill_color(0, 0, 0); pdf.set_text_color(255, 255, 255)
             pdf.cell(35, 10, "NET A PAYER", 1, 0, '', True); pdf.cell(30, 10, f"{total_ttc:,.2f}", 1, 1, 'R', True)
             pdf.ln(10); pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', 'B', 10)
-            pdf.cell(0, 8, "Conditions & Coordonnées Bancaires", "B", 1)
+            pdf.cell(0, 8, "Conditions & Coordonnees Bancaires", "B", 1)
             pdf.set_font('Arial', '', 8)
-            bank_txt = (f"Validité: {validite_offre} | Délai: {delai_exec}\n"
-                        f"Modalités: {modalites_paie}\n"
+            bank_txt = (f"Validite: {validite_offre} | Delai: {delai_exec}\n"
+                        f"Modalites: {modalites_paie}\n"
                         f"Banque: Attijariwafa Bank | RIB: 007 640 0000903000016328 55")
             pdf.multi_cell(0, 5, bank_txt)
             st.session_state.pdf_blob = pdf.output(dest='S').encode('latin-1')
-            st.success("✅ PDF généré !")
+            st.success("✅ PDF généré!")
 
         if 'pdf_blob' in st.session_state:
             st.download_button(label="📥 Télécharger le PDF", data=st.session_state.pdf_blob, file_name=f"Devis_{client_name}.pdf", mime="application/pdf")
