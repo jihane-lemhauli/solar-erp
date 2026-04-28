@@ -32,13 +32,12 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =========================================================
-# SIDEBAR NAVIGATION (التحكم في النوافذ)
+# SIDEBAR NAVIGATION
 # =========================================================
 st.sidebar.title("☀️ ERP Solaire")
 st.sidebar.write(f"👤 **{st.session_state.user}**")
 st.sidebar.markdown("---")
 
-# اختيار الصفحة (Fenêtre)
 page = st.sidebar.radio("Menu 📋", ["Gestion Inventaire 📦", "Générateur de Devis 📄"])
 
 if st.sidebar.button("Déconnexion 🚪"):
@@ -90,11 +89,11 @@ if page == "Gestion Inventaire 📦":
     df_raw = load_data()
     
     st.sidebar.subheader("🔍 Filtres de recherche")
-    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist()])
+    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist() if pd.notna(x)])
     selected_id = st.sidebar.selectbox("Filtrer par Shipment No. (ID)", all_ids)
     
     if "Status" in df_raw.columns:
-        all_status = ["Tous"] + sorted(df_raw["Status"].unique().tolist())
+        all_status = ["Tous"] + sorted([str(x) for x in df_raw["Status"].unique().tolist() if pd.notna(x)])
     else:
         all_status = ["Tous", "En attente", "Livré", "Facturé"]
     selected_status = st.sidebar.selectbox("Filtrer par Statut", all_status)
@@ -110,14 +109,28 @@ if page == "Gestion Inventaire 📦":
 
     edited_df = st.data_editor(df_display, num_rows="dynamic", use_container_width=True, key="main_editor")
 
-    if st.button("💾 Sauvegarder les modifications"):
-        if selected_id == "Tous" and selected_status == "Tous":
-            final_df = edited_df
-        else:
-            df_not_in_view = df_raw.drop(df_display.index)
-            final_df = pd.concat([df_not_in_view, edited_df], ignore_index=True)
-        if save_data(final_df):
-            st.rerun()
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("💾 Sauvegarder les modifications"):
+            if selected_id == "Tous" and selected_status == "Tous":
+                final_df = edited_df
+            else:
+                df_not_in_view = df_raw.drop(df_display.index)
+                final_df = pd.concat([df_not_in_view, edited_df], ignore_index=True)
+            if save_data(final_df):
+                st.rerun()
+
+    with col2:
+        # Zidi had l-partie bach t-télécharger l-fichye m-Cloud
+        if os.path.exists(FILE_NAME):
+            with open(FILE_NAME, "rb") as f:
+                st.download_button(
+                    label="📥 Télécharger l'Excel mis à jour",
+                    data=f,
+                    file_name=FILE_NAME,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
     st.markdown("---")
     st.subheader("🌐 Aperçu global (sans filtres)")
@@ -128,7 +141,6 @@ if page == "Gestion Inventaire 📦":
 # =========================================================
 elif page == "Générateur de Devis 📄":
     try:
-        # --- التغيير هنا: Classeur1.xlsx rja3 Clas.xlsx ---
         df_base = pd.read_excel("Clas.xlsx", sheet_name="lista_items")
     except Exception as e:
         st.error(f"Erreur de lecture du fichier Excel: {e}")
