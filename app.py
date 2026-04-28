@@ -28,7 +28,7 @@ if not st.session_state.logged_in:
             st.session_state.user = u
             st.rerun()
         else:
-            st.error("❌ Erreur")
+            st.error("❌ Erreur de connexion")
     st.stop()
 
 # =========================================================
@@ -68,22 +68,22 @@ if page == "Gestion Inventaire 📦":
                 df = df.dropna(how='all')
                 if "Status" not in df.columns:
                     df["Status"] = "En attente"
+                return calculate_metrics(df)
             except Exception as e:
                 st.error(f"Erreur Excel: {e}")
                 return pd.DataFrame()
         else:
             columns = ["Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "HS-Code - Morocco", "Date", "Status"]
-            df = pd.DataFrame(columns=columns)
-        return calculate_metrics(df)
+            return pd.DataFrame(columns=columns)
 
     def save_data(df_to_save):
         try:
             df_final_save = calculate_metrics(df_to_save)
             df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
-            st.success("✅ Données enregistrées dans Excel !")
+            st.success(f"✅ Données enregistrées direct f '{FILE_NAME}' !")
             return True
         except PermissionError:
-            st.error("❌ Ferme le fichier Excel d'abord !")
+            st.error("❌ Erreur: Khasek t-sedd l-fichye Excel f PC dyalk bach n-sauvegarder !")
             return False
 
     df_raw = load_data()
@@ -112,7 +112,7 @@ if page == "Gestion Inventaire 📦":
     col1, col2 = st.columns(2)
     
     with col1:
-        if st.button("💾 Sauvegarder les modifications"):
+        if st.button("💾 Sauvegarder direct f Excel"):
             if selected_id == "Tous" and selected_status == "Tous":
                 final_df = edited_df
             else:
@@ -122,18 +122,17 @@ if page == "Gestion Inventaire 📦":
                 st.rerun()
 
     with col2:
-        # Zidi had l-partie bach t-télécharger l-fichye m-Cloud
         if os.path.exists(FILE_NAME):
             with open(FILE_NAME, "rb") as f:
                 st.download_button(
-                    label="📥 Télécharger l'Excel mis à jour",
+                    label="📥 Télécharger une copie (Backup)",
                     data=f,
                     file_name=FILE_NAME,
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
     st.markdown("---")
-    st.subheader("🌐 Aperçu global (sans filtres)")
+    st.subheader("🌐 Aperçu global (Base de données)")
     st.dataframe(df_raw, use_container_width=True)
 
 # =========================================================
@@ -143,7 +142,7 @@ elif page == "Générateur de Devis 📄":
     try:
         df_base = pd.read_excel("Clas.xlsx", sheet_name="lista_items")
     except Exception as e:
-        st.error(f"Erreur de lecture du fichier Excel: {e}")
+        st.error(f"Erreur de lecture du fichier Clas.xlsx: {e}")
         df_base = pd.DataFrame(columns=['Code article', 'Désignation', 'P.U. HT (MAD)'])
 
     class PropMedPDF(FPDF):
@@ -184,7 +183,7 @@ elif page == "Générateur de Devis 📄":
     st.subheader("📋 Informations du Devis")
     st.session_state.devis_no = st.text_input("N° Devis", "042110")
     st.session_state.date_devis = st.date_input("Date du Devis", date.today())
-    client_name = st.text_input("Nom du Client", "Jihane")
+    client_name = st.text_input("Nom du Client", "Client")
     validite_offre = st.text_input("Validité de l'offre", "10 Jours")
     delai_exec = st.text_input("Délai d'exécution", "3 Jours")
     modalites_paie = st.text_area("Modalités de paiement", "50 % à la commande / 50 % à la mise en service")
