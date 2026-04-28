@@ -49,7 +49,7 @@ if st.sidebar.button("Déconnexion 🚪"):
 # FENÊTRE 1: GESTION INVENTAIRE (الكود الثاني ديالك)
 # =========================================================
 if page == "Gestion Inventaire 📦":
-    FILE_NAME = "PropMed Inventory (1) (3).xlsx"
+    FILE_NAME = "Inventaire PropMed (1) (3).xlsx"
 
     def calculate_metrics(df_to_calc):
         if df_to_calc is None or df_to_calc.empty:
