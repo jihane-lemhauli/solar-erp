@@ -46,7 +46,7 @@ if st.sidebar.button("Déconnexion 🚪"):
     st.rerun()
 
 # =========================================================
-# FENÊTRE 1: GESTION INVENTAIRE (الكود الثاني ديالك)
+# FENÊTRE 1: GESTION INVENTAIRE
 # =========================================================
 if page == "Gestion Inventaire 📦":
     FILE_NAME = "Inventaire PropMed (1) (3).xlsx"
@@ -124,11 +124,12 @@ if page == "Gestion Inventaire 📦":
     st.dataframe(df_raw, use_container_width=True)
 
 # =========================================================
-# FENÊTRE 2: GÉNÉRATEUR DE DEVIS (الكود الأول ديالك)
+# FENÊTRE 2: GÉNÉRATEUR DE DEVIS
 # =========================================================
 elif page == "Générateur de Devis 📄":
     try:
-        df_base = pd.read_excel("Classeur1.xlsx", sheet_name="lista_items")
+        # --- التغيير هنا: Classeur1.xlsx rja3 Clas.xlsx ---
+        df_base = pd.read_excel("Clas.xlsx", sheet_name="lista_items")
     except Exception as e:
         st.error(f"Erreur de lecture du fichier Excel: {e}")
         df_base = pd.DataFrame(columns=['Code article', 'Désignation', 'P.U. HT (MAD)'])
