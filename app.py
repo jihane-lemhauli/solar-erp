@@ -139,7 +139,6 @@ if page == "Gestion Inventaire 📦":
 # FENÊTRE 2: GÉNÉRATEUR DE DEVIS
 # =========================================================
 elif page == "Générateur de Devis 📄":
-    # --- 3. Hna khaliina Clas.xlsx dyalk kima kant ---
     try:
         df_base = pd.read_excel("Clas.xlsx", sheet_name="lista_items")
     except Exception as e:
@@ -217,10 +216,20 @@ elif page == "Générateur de Devis 📄":
 
     if st.session_state.devis_items:
         df_current = pd.DataFrame(st.session_state.devis_items)
-        st.table(df_current)
-        total_ht = df_current['Montant HT'].sum()
+        
+        # --- Section Modifiable ---
+        st.info("💡 T-qadri t-modifiy l-prix awla l-quantité direct f la table l-foq.")
+        edited_items_df = st.data_editor(df_current, num_rows="dynamic", use_container_width=True, key="devis_editor")
+        
+        # Recalcul automatique du Montant HT pour chaque ligne
+        edited_items_df['Montant HT'] = edited_items_df['Quantité'] * edited_items_df['P.U. HT']
+        st.session_state.devis_items = edited_items_df.to_dict('records')
+        
+        # Totaux globaux
+        total_ht = edited_items_df['Montant HT'].sum()
         tva_20 = total_ht * 0.2
         total_ttc = total_ht + tva_20
+        
         st.write(f"**Total HT:** {total_ht:,.2f} MAD | **TVA 20%:** {tva_20:,.2f} MAD | **Total TTC:** {total_ttc:,.2f} MAD")
 
         if st.button("🗑️ Vider la liste"):
@@ -250,7 +259,7 @@ elif page == "Générateur de Devis 📄":
                 pdf.cell(30, 8, f"{item['Montant HT']:,.2f}", 1, 1, 'R')
             pdf.ln(5); pdf.set_x(135); pdf.set_font('Arial', 'B', 9)
             pdf.cell(35, 8, "Total HT", 1, 0); pdf.cell(30, 8, f"{total_ht:,.2f}", 1, 1, 'R')
-            pdf.set_x(135); pdf.cell(35, 8, "TVA 20%", 1, 0); pdf.cell(30, 8, f"{tva_20:,.2f}", 1, 1, 'R')
+            pdf.set_x(135); pdf.cell(35, 8, "TVA 20%", 1, 0); pdf.cell(30, 8, f"{total_ttc-total_ht:,.2f}", 1, 1, 'R')
             pdf.set_x(135); pdf.set_fill_color(0, 0, 0); pdf.set_text_color(255, 255, 255)
             pdf.cell(35, 10, "NET A PAYER", 1, 0, '', True); pdf.cell(30, 10, f"{total_ttc:,.2f}", 1, 1, 'R', True)
             pdf.ln(10); pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', 'B', 10)
