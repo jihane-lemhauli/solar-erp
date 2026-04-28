@@ -4,7 +4,7 @@ from fpdf import FPDF
 from datetime import date
 import os
 
-# --- 1. إعدادات الصفحة العامة ---
+# --- 1. Paramètres généraux de la page ---
 st.set_page_config(page_title="PropMed ERP & Devis ☀️", layout="wide", page_icon="☀️")
 
 # =========================
@@ -32,7 +32,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =========================================================
-# SIDEBAR NAVIGATION
+# BARRE LATÉRALE (NAVIGATION)
 # =========================================================
 st.sidebar.title("☀️ ERP Solaire")
 st.sidebar.write(f"👤 **{st.session_state.user}**")
@@ -45,7 +45,7 @@ if st.sidebar.button("Déconnexion 🚪"):
     st.rerun()
 
 # =========================================================
-# FENÊTRE 1: GESTION INVENTAIRE
+# ÉCRAN 1 : GESTION INVENTAIRE
 # =========================================================
 if page == "Gestion Inventaire 📦":
     FILE_NAME = "Inventaire.xlsx"
@@ -80,22 +80,23 @@ if page == "Gestion Inventaire 📦":
         try:
             df_final_save = calculate_metrics(df_to_save)
             df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
-            st.success(f"✅ Dakchi t-tsajel direct f '{FILE_NAME}' !")
+            st.success(f"✅ Données enregistrées dans '{FILE_NAME}' !")
             return True
         except PermissionError:
-            st.error("❌ Erreur: Khasek t-sedd l-fichye Excel f PC dyalk bach n-sauvegarder !")
+            st.error("❌ Erreur : veuillez fermer le fichier Excel sur votre PC pour sauvegarder !")
             return False
 
     df_raw = load_data()
-    
+
     st.sidebar.subheader("🔍 Filtres de recherche")
     all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist() if pd.notna(x)])
     selected_id = st.sidebar.selectbox("Filtrer par Shipment No. (ID)", all_ids)
-    
+
     if "Status" in df_raw.columns:
         all_status = ["Tous"] + sorted([str(x) for x in df_raw["Status"].unique().tolist() if pd.notna(x)])
     else:
         all_status = ["Tous", "En attente", "Livré", "Facturé"]
+
     selected_status = st.sidebar.selectbox("Filtrer par Statut", all_status)
 
     df_display = df_raw.copy()
@@ -110,9 +111,9 @@ if page == "Gestion Inventaire 📦":
     edited_df = st.data_editor(df_display, num_rows="dynamic", use_container_width=True, key="main_editor")
 
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        if st.button("💾 Sauvegarder direct f Excel"):
+        if st.button("💾 Sauvegarder vers Excel"):
             if selected_id == "Tous" and selected_status == "Tous":
                 final_df = edited_df
             else:
@@ -136,7 +137,7 @@ if page == "Gestion Inventaire 📦":
     st.dataframe(df_raw, use_container_width=True)
 
 # =========================================================
-# FENÊTRE 2: GÉNÉRATEUR DE DEVIS
+# ÉCRAN 2 : GÉNÉRATEUR DE DEVIS
 # =========================================================
 elif page == "Générateur de Devis 📄":
     try:
@@ -152,7 +153,7 @@ elif page == "Générateur de Devis 📄":
             self.text(10, 22, "PropMed")
             self.set_font('Arial', '', 9)
             self.set_text_color(100, 100, 100)
-            self.text(10, 28, "Solar Solutions - Tanger, Maroc")
+            self.text(10, 28, "Solutions Solaires - Tanger, Maroc")
             self.set_fill_color(26, 78, 138)
             self.rect(110, 10, 90, 25, 'F')
             self.set_text_color(255, 255, 255)
@@ -161,7 +162,7 @@ elif page == "Générateur de Devis 📄":
             self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '---')}", 0, 1, 'C')
             self.set_font('Arial', '', 9)
             self.set_xy(110, 23)
-            self.cell(90, 10, f"Systeme PV Hybride - {date.today().year}", 0, 1, 'C')
+            self.cell(90, 10, f"Système PV Hybride - {date.today().year}", 0, 1, 'C')
 
         def footer(self):
             self.set_y(-20)
@@ -173,106 +174,75 @@ elif page == "Générateur de Devis 📄":
     if 'devis_items' not in st.session_state:
         st.session_state.devis_items = []
 
-    st.markdown(f"""
+    st.markdown("""
         <div style="background-color:#1a4e8a; padding:20px; border-radius:10px; color:white; text-align:center; margin-bottom:20px;">
             <h1 style="margin:0;">PropMed Solar Solutions</h1>
             <p style="margin:0;">Générateur de Devis Professionnel</p>
         </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("📋 Informations du Devis")
-    st.session_state.devis_no = st.text_input("N° Devis", "042110")
-    st.session_state.date_devis = st.date_input("Date du Devis", date.today())
-    client_name = st.text_input("Nom du Client", "Client")
-    validite_offre = st.text_input("Validité de l'offre", "10 Jours")
-    delai_exec = st.text_input("Délai d'exécution", "3 Jours")
-    modalites_paie = st.text_area("Modalités de paiement", "50 % à la commande / 50 % à la mise en service")
+    st.subheader("📋 Informations du devis")
+    st.session_state.devis_no = st.text_input("Numéro de devis", "042110")
+    st.session_state.date_devis = st.date_input("Date du devis", date.today())
+    client_name = st.text_input("Nom du client", "Client")
+    validite_offre = st.text_input("Validité de l'offre", "10 jours")
+    delai_exec = st.text_input("Délai d'exécution", "3 jours")
+    modalites_paie = st.text_area("Modalités de paiement", "50% à la commande / 50% à la mise en service")
 
     st.divider()
-    st.subheader("📦 Gestion des Articles")
-    mode_ajout = st.radio("Mode d'ajout :", ["Sélectionner depuis la base", "Saisie manuelle"])
-
-    if mode_ajout == "Sélectionner depuis la base":
-        if not df_base.empty:
-            code_sel = st.selectbox("Sélectionner un article", df_base['Code article'].unique())
-            qte_sel = st.number_input("Quantité", min_value=1, value=1, key="qte_base")
-            if st.button("➕ Ajouter l'article sélectionné"):
-                row = df_base[df_base['Code article'] == code_sel].iloc[0]
-                st.session_state.devis_items.append({
-                    "Code": code_sel, "Désignation": row['Désignation'], "Quantité": qte_sel,
-                    "P.U. HT": row['P.U. HT (MAD)'], "Montant HT": qte_sel * row['P.U. HT (MAD)']
-                })
-                st.rerun()
-    else:
-        m_code = st.text_input("Code Article (Manuel)")
-        m_desc = st.text_input("Désignation (Manuel)")
-        m_pu = st.number_input("Prix Unitaire HT (MAD)", min_value=0.0)
-        m_qte = st.number_input("Quantité ", min_value=1, value=1, key="qte_man")
-        if st.button("➕ Ajouter l'article manuellement"):
-            st.session_state.devis_items.append({
-                "Code": m_code, "Désignation": m_desc, "Quantité": m_qte, "P.U. HT": m_pu, "Montant HT": m_qte * m_pu
-            })
-            st.rerun()
+    st.subheader("📦 Gestion des articles")
+    mode_ajout = st.radio("Mode d'ajout :", ["Sélection depuis la base", "Saisie manuelle"])
 
     if st.session_state.devis_items:
         df_current = pd.DataFrame(st.session_state.devis_items)
-        
-        # --- Section Modifiable ---
-        st.info("💡 T-qadri t-modifiy l-prix awla l-quantité direct f la table l-foq.")
+        st.info("💡 Vous pouvez modifier les prix ou quantités directement dans le tableau.")
         edited_items_df = st.data_editor(df_current, num_rows="dynamic", use_container_width=True, key="devis_editor")
-        
-        # Recalcul automatique du Montant HT pour chaque ligne
         edited_items_df['Montant HT'] = edited_items_df['Quantité'] * edited_items_df['P.U. HT']
         st.session_state.devis_items = edited_items_df.to_dict('records')
-        
-        # Totaux globaux
+
         total_ht = edited_items_df['Montant HT'].sum()
         tva_20 = total_ht * 0.2
         total_ttc = total_ht + tva_20
-        
+
         st.write(f"**Total HT:** {total_ht:,.2f} MAD | **TVA 20%:** {tva_20:,.2f} MAD | **Total TTC:** {total_ttc:,.2f} MAD")
 
         if st.button("🗑️ Vider la liste"):
             st.session_state.devis_items = []
-            if 'pdf_blob' in st.session_state: del st.session_state.pdf_blob
+            if 'pdf_blob' in st.session_state:
+                del st.session_state.pdf_blob
             st.rerun()
 
-        if st.button("📄 Générer le Devis PDF"):
+        if st.button("📄 Générer le PDF"):
             pdf = PropMedPDF()
             pdf.add_page()
             pdf.set_y(40)
             pdf.set_font('Arial', 'B', 10)
-            pdf.cell(0, 10, f"Client: {client_name}", 0, 1)
+            pdf.cell(0, 10, f"Client : {client_name}", 0, 1)
             pdf.ln(5)
-            pdf.set_fill_color(26, 78, 138); pdf.set_text_color(255, 255, 255)
+
+            pdf.set_fill_color(26, 78, 138)
+            pdf.set_text_color(255, 255, 255)
             pdf.set_font('Arial', 'B', 9)
-            pdf.cell(30, 10, "Code", 1, 0, 'C', True); pdf.cell(90, 10, "Designation", 1, 0, 'C', True)
-            pdf.cell(15, 10, "Qte", 1, 0, 'C', True); pdf.cell(30, 10, "P.U. HT", 1, 0, 'C', True)
+            pdf.cell(30, 10, "Code", 1, 0, 'C', True)
+            pdf.cell(90, 10, "Désignation", 1, 0, 'C', True)
+            pdf.cell(15, 10, "Qté", 1, 0, 'C', True)
+            pdf.cell(30, 10, "P.U HT", 1, 0, 'C', True)
             pdf.cell(30, 10, "Montant", 1, 1, 'C', True)
-            pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', '', 8)
+
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font('Arial', '', 8)
+
             for item in st.session_state.devis_items:
-                clean_d = str(item['Désignation']).encode('latin-1', 'replace').decode('latin-1')
                 pdf.cell(30, 8, str(item['Code']), 1)
-                pdf.cell(90, 8, clean_d[:55], 1)
+                pdf.cell(90, 8, str(item['Désignation'])[:55], 1)
                 pdf.cell(15, 8, str(item['Quantité']), 1, 0, 'C')
                 pdf.cell(30, 8, f"{item['P.U. HT']:,.2f}", 1, 0, 'R')
                 pdf.cell(30, 8, f"{item['Montant HT']:,.2f}", 1, 1, 'R')
-            pdf.ln(5); pdf.set_x(135); pdf.set_font('Arial', 'B', 9)
-            pdf.cell(35, 8, "Total HT", 1, 0); pdf.cell(30, 8, f"{total_ht:,.2f}", 1, 1, 'R')
-            pdf.set_x(135); pdf.cell(35, 8, "TVA 20%", 1, 0); pdf.cell(30, 8, f"{total_ttc-total_ht:,.2f}", 1, 1, 'R')
-            pdf.set_x(135); pdf.set_fill_color(0, 0, 0); pdf.set_text_color(255, 255, 255)
-            pdf.cell(35, 10, "NET A PAYER", 1, 0, '', True); pdf.cell(30, 10, f"{total_ttc:,.2f}", 1, 1, 'R', True)
-            pdf.ln(10); pdf.set_text_color(0, 0, 0); pdf.set_font('Arial', 'B', 10)
-            pdf.cell(0, 8, "Conditions & Coordonnees Bancaires", "B", 1)
-            pdf.set_font('Arial', '', 8)
-            bank_txt = (f"Validite: {validite_offre} | Delai: {delai_exec}\n"
-                        f"Modalites: {modalites_paie}\n"
-                        f"Banque: Attijariwafa Bank | RIB: 007 640 0000903000016328 55")
-            pdf.multi_cell(0, 5, bank_txt)
+
             st.session_state.pdf_blob = pdf.output(dest='S').encode('latin-1')
-            st.success("✅ PDF généré!")
+            st.success("✅ PDF généré")
 
         if 'pdf_blob' in st.session_state:
-            st.download_button(label="📥 Télécharger le PDF", data=st.session_state.pdf_blob, file_name=f"Devis_{client_name}.pdf", mime="application/pdf")
+            st.download_button("📥 Télécharger PDF", st.session_state.pdf_blob, file_name=f"Devis_{client_name}.pdf", mime="application/pdf")
     else:
         st.info("Ajoutez des articles pour commencer.")
