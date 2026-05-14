@@ -5,69 +5,189 @@ from datetime import date
 import os
 
 # --- 1. إعدادات الصفحة العامة ---
-st.set_page_config(page_title="PropMed ERP & Devis ☀️", layout="wide", page_icon="☀️")
+st.set_page_config(
+    page_title="PropMed ERP & Devis ☀️",
+    layout="wide",
+    page_icon="☀️"
+)
 
 # =========================================================
-# 🎨 DESIGN & CSS PROFESSIONNEL (Clair & Lisible)
+# 🎨 DESIGN PREMIUM MODERNE
 # =========================================================
 st.markdown("""
 <style>
-    /* Khalfia dial l-app (Gris très clair) */
-    .stApp {
-        background-color: #f8f9fa;
-    }
-    
-    /* Sidebar (Design Pro - Blanc & Gris) */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        border-right: 1px solid #e0e0e0;
-    }
-    
-    /* Kataba f Sidebar t-welli ka7la bach t-ban mzyan */
-    [data-testid="stSidebar"] * {
-        color: #2c3e50 !important;
-    }
 
-    /* Titre principal (Bleu Marine PropMed) */
-    .main-title {
-        color: #1a4e8a;
-        font-family: 'Segoe UI', sans-serif;
-        font-weight: 700;
-        text-align: left;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #1a4e8a;
-        margin-bottom: 25px;
-    }
+/* =====================================================
+   GLOBAL
+===================================================== */
+html, body, [class*="css"] {
+    font-family: 'Segoe UI', sans-serif;
+}
 
-    /* Card Design pour les formulaires */
-    div.stExpander, div[data-testid="stForm"] {
-        background-color: white !important;
-        border-radius: 10px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
-        border: 1px solid #eee !important;
-        padding: 15px;
-    }
+.stApp {
+    background: linear-gradient(to bottom right, #f4f7fb, #eef2f7);
+}
 
-    /* Buttons Style */
-    .stButton>button {
-        background-color: #1a4e8a !important;
-        color: white !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-        border: none !important;
-        padding: 0.5rem 1rem !important;
-        transition: 0.3s;
-    }
-    
-    .stButton>button:hover {
-        background-color: #12345d !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-    }
+/* =====================================================
+   SIDEBAR
+===================================================== */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a, #1e293b) !important;
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
 
-    /* Input focus color */
-    input:focus {
-        border-color: #1a4e8a !important;
-    }
+[data-testid="stSidebar"] * {
+    color: white !important;
+}
+
+[data-testid="stSidebar"] .stRadio label {
+    font-weight: 500;
+}
+
+/* =====================================================
+   TITRES
+===================================================== */
+.main-title {
+    color: #0f172a;
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    padding-bottom: 12px;
+    border-bottom: 4px solid #2563eb;
+    letter-spacing: 0.5px;
+}
+
+/* =====================================================
+   CARDS / FORMS
+===================================================== */
+div[data-testid="stForm"],
+div.stExpander {
+    background: rgba(255,255,255,0.95) !important;
+    border-radius: 22px !important;
+    padding: 22px !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    box-shadow: 0 10px 25px rgba(15,23,42,0.06) !important;
+    backdrop-filter: blur(6px);
+}
+
+/* =====================================================
+   INPUTS
+===================================================== */
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div[data-baseweb="select"],
+.stTextArea textarea {
+    border-radius: 14px !important;
+    border: 1px solid #dbe4ee !important;
+    background-color: white !important;
+    padding: 10px !important;
+}
+
+.stTextInput input:focus,
+.stNumberInput input:focus,
+textarea:focus {
+    border: 1px solid #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15) !important;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.stButton > button {
+    width: 100%;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    border: none !important;
+    padding: 0.7rem 1rem !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+    box-shadow: 0 10px 22px rgba(37,99,235,0.35);
+}
+
+/* =====================================================
+   DOWNLOAD BUTTON
+===================================================== */
+.stDownloadButton > button {
+    width: 100%;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    color: white !important;
+    font-weight: 700 !important;
+    border: none !important;
+    padding: 0.7rem 1rem !important;
+}
+
+/* =====================================================
+   DATAFRAME
+===================================================== */
+[data-testid="stDataFrame"] {
+    background-color: white;
+    border-radius: 20px;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+/* =====================================================
+   INFO / SUCCESS
+===================================================== */
+.stAlert {
+    border-radius: 14px !important;
+}
+
+/* =====================================================
+   RADIO
+===================================================== */
+.stRadio > div {
+    background: white;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+}
+
+/* =====================================================
+   METRIC STYLE
+===================================================== */
+.metric-card {
+    background: white;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    text-align: center;
+}
+
+.metric-title {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.metric-value {
+    color: #0f172a;
+    font-size: 28px;
+    font-weight: 800;
+    margin-top: 8px;
+}
+
+/* =====================================================
+   DIVIDER
+===================================================== */
+hr {
+    border: none;
+    height: 1px;
+    background: #dbe4ee;
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -83,31 +203,79 @@ if "logged_in" not in st.session_state:
 # CONNEXION
 # =========================
 if not st.session_state.logged_in:
-    st.markdown("<h1 class='main-title' style='text-align:center;'>🔐 Connexion ERP PropMed</h1>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1, 1])
+
+    st.markdown("""
+    <div style="
+        text-align:center;
+        padding-top:40px;
+        padding-bottom:30px;
+    ">
+        <h1 style="
+            color:#0f172a;
+            font-size:42px;
+            font-weight:800;
+        ">
+            ☀️ PropMed ERP
+        </h1>
+
+        <p style="
+            color:#64748b;
+            font-size:18px;
+        ">
+            Système de Gestion & Générateur de Devis
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1,1,1])
+
     with col2:
         with st.form("login_form"):
+
+            st.markdown("### 🔐 Connexion")
+
             u = st.text_input("Utilisateur")
             p = st.text_input("Mot de passe", type="password")
+
             if st.form_submit_button("Se connecter", use_container_width=True):
+
                 if u in USERS and USERS[u] == p:
                     st.session_state.logged_in = True
                     st.session_state.user = u
                     st.rerun()
                 else:
                     st.error("❌ Erreur de connexion")
+
     st.stop()
 
 # =========================================================
 # SIDEBAR NAVIGATION
 # =========================================================
-st.sidebar.markdown(f"### ☀️ PropMed ERP")
-st.sidebar.write(f"👤 **Bienvenue, {st.session_state.user}**")
+st.sidebar.markdown("""
+<div style="text-align:center;padding:10px 0 20px 0;">
+    <h1 style="color:white;">☀️ PropMed</h1>
+    <p style="color:#cbd5e1;">ERP Professionnel</p>
+</div>
+""", unsafe_allow_html=True)
+
+st.sidebar.markdown(f"""
+<div style="
+    background: rgba(255,255,255,0.08);
+    padding:15px;
+    border-radius:16px;
+    margin-bottom:20px;
+">
+👤 <b>Bienvenue, {st.session_state.user}</b>
+</div>
+""", unsafe_allow_html=True)
+
+page = st.sidebar.radio(
+    "Navigation 📋",
+    ["Gestion Inventaire 📦", "Générateur de Devis 📄"]
+)
+
 st.sidebar.markdown("---")
 
-page = st.sidebar.radio("Menu 📋", ["Gestion Inventaire 📦", "Générateur de Devis 📄"])
-
-st.sidebar.markdown("---")
 if st.sidebar.button("Déconnexion 🚪", use_container_width=True):
     st.session_state.logged_in = False
     st.rerun()
@@ -116,160 +284,450 @@ if st.sidebar.button("Déconnexion 🚪", use_container_width=True):
 # FENÊTRE 1: GESTION INVENTAIRE
 # =========================================================
 if page == "Gestion Inventaire 📦":
+
     FILE_NAME = "Inventaire.xlsx"
 
     def calculate_metrics(df_to_calc):
-        if df_to_calc is None or df_to_calc.empty: return df_to_calc
-        cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
+        if df_to_calc is None or df_to_calc.empty:
+            return df_to_calc
+
+        cols_to_fix = [
+            "Quantity Ordered",
+            "Quantity Used",
+            "Quantity in Inventory"
+        ]
+
         for col in cols_to_fix:
             if col in df_to_calc.columns:
-                df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
+                df_to_calc[col] = pd.to_numeric(
+                    df_to_calc[col],
+                    errors="coerce"
+                ).fillna(0)
+
         if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
-            df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
+            df_to_calc["Quantity in Inventory"] = (
+                df_to_calc["Quantity Ordered"] -
+                df_to_calc["Quantity Used"]
+            )
+
         return df_to_calc
 
     def load_data():
+
         if os.path.exists(FILE_NAME):
+
             try:
                 df = pd.read_excel(FILE_NAME, engine='openpyxl')
-                if "Client" not in df.columns: df.insert(0, "Client", "Client Inconnu")
-                if "Status" not in df.columns: df["Status"] = "En attente"
+
+                if "Client" not in df.columns:
+                    df.insert(0, "Client", "Client Inconnu")
+
+                if "Status" not in df.columns:
+                    df["Status"] = "En attente"
+
                 return calculate_metrics(df)
-            except: return pd.DataFrame()
+
+            except:
+                return pd.DataFrame()
+
         else:
-            columns = ["Client", "Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "Status"]
+
+            columns = [
+                "Client",
+                "Shipment No.",
+                "Item Ref",
+                "Item No.",
+                "Description",
+                "Quantity Ordered",
+                "Quantity Used",
+                "Quantity in Inventory",
+                "Unit",
+                "Status"
+            ]
+
             return pd.DataFrame(columns=columns)
 
     def save_data(df_to_save):
+
         df_final_save = calculate_metrics(df_to_save)
-        df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
+
+        df_final_save.to_excel(
+            FILE_NAME,
+            index=False,
+            engine='openpyxl'
+        )
+
         st.success(f"✅ Sauvegardé dans '{FILE_NAME}' !")
 
     df_raw = load_data()
 
-    # --- FILTRES (Sidebar) ---
+    # --- FILTRES ---
     st.sidebar.subheader("🔍 Filtres")
-    all_clients = ["Tous"] + sorted(df_raw["Client"].unique().astype(str).tolist())
-    selected_client = st.sidebar.selectbox("Filtrer par Client 👤", all_clients)
-    
-    all_ids = ["Tous"] + sorted([str(x) for x in df_raw["Shipment No."].unique().tolist() if pd.notna(x)])
-    selected_id = st.sidebar.selectbox("Shipment No. (ID)", all_ids)
+
+    all_clients = ["Tous"] + sorted(
+        df_raw["Client"].unique().astype(str).tolist()
+    )
+
+    selected_client = st.sidebar.selectbox(
+        "Filtrer par Client 👤",
+        all_clients
+    )
+
+    all_ids = ["Tous"] + sorted([
+        str(x)
+        for x in df_raw["Shipment No."].unique().tolist()
+        if pd.notna(x)
+    ])
+
+    selected_id = st.sidebar.selectbox(
+        "Shipment No. (ID)",
+        all_ids
+    )
 
     df_display = df_raw.copy()
+
     if selected_client != "Tous":
-        df_display = df_display[df_display["Client"] == selected_client]
+        df_display = df_display[
+            df_display["Client"] == selected_client
+        ]
+
     if selected_id != "Tous":
-        df_display = df_display[df_display["Shipment No."].astype(str) == selected_id]
+        df_display = df_display[
+            df_display["Shipment No."].astype(str) == selected_id
+        ]
 
-    st.markdown("<h1 class='main-title'>📦 Gestion de l'Inventaire & Clients</h1>", unsafe_allow_html=True)
+    st.markdown(
+        "<h1 class='main-title'>📦 Gestion de l'Inventaire & Clients</h1>",
+        unsafe_allow_html=True
+    )
 
-    # --- AJOUTER / MODIFIER CLIENT ---
+    # KPI DESIGN
+    colk1, colk2, colk3 = st.columns(3)
+
+    with colk1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-title">Clients</div>
+            <div class="metric-value">{df_raw['Client'].nunique()}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with colk2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-title">Articles</div>
+            <div class="metric-value">{len(df_raw)}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with colk3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-title">En Stock</div>
+            <div class="metric-value">
+                {int(df_raw['Quantity in Inventory'].sum()) if 'Quantity in Inventory' in df_raw.columns else 0}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # --- AJOUTER ---
     with st.expander("➕ Ajouter ou Modifier une ligne (Client/Shipment)"):
+
         with st.form("add_form"):
+
             c1, c2, c3 = st.columns(3)
+
             new_client = c1.text_input("Nom du Client")
             new_ship = c2.text_input("Shipment No.")
             new_desc = c3.text_input("Description Article")
-            
+
             c4, c5, c6 = st.columns(3)
-            new_qte = c4.number_input("Quantité Commandée", min_value=0)
-            new_used = c5.number_input("Quantité Utilisée", min_value=0)
-            new_status = c6.selectbox("Statut", ["En attente", "Livré", "Facturé"])
-            
-            if st.form_submit_button("Ajouter à l'inventaire"):
+
+            new_qte = c4.number_input(
+                "Quantité Commandée",
+                min_value=0
+            )
+
+            new_used = c5.number_input(
+                "Quantité Utilisée",
+                min_value=0
+            )
+
+            new_status = c6.selectbox(
+                "Statut",
+                ["En attente", "Livré", "Facturé"]
+            )
+
+            if st.form_submit_button(
+                "Ajouter à l'inventaire"
+            ):
+
                 new_row = {
-                    "Client": new_client, "Shipment No.": new_ship, "Description": new_desc,
-                    "Quantity Ordered": new_qte, "Quantity Used": new_used, "Status": new_status
+                    "Client": new_client,
+                    "Shipment No.": new_ship,
+                    "Description": new_desc,
+                    "Quantity Ordered": new_qte,
+                    "Quantity Used": new_used,
+                    "Status": new_status
                 }
-                df_raw = pd.concat([df_raw, pd.DataFrame([new_row])], ignore_index=True)
+
+                df_raw = pd.concat(
+                    [df_raw, pd.DataFrame([new_row])],
+                    ignore_index=True
+                )
+
                 save_data(df_raw)
                 st.rerun()
 
-    st.info(f"📍 **{len(df_display)}** lignes trouvées.")
-    edited_df = st.data_editor(df_display, num_rows="dynamic", use_container_width=True, key="main_editor")
+    st.info(f"📍 {len(df_display)} lignes trouvées.")
+
+    edited_df = st.data_editor(
+        df_display,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="main_editor"
+    )
 
     col_btn1, col_btn2 = st.columns(2)
+
     with col_btn1:
-        if st.button("💾 Sauvegarder les modifications", use_container_width=True):
+
+        if st.button(
+            "💾 Sauvegarder les modifications",
+            use_container_width=True
+        ):
+
             if selected_client == "Tous" and selected_id == "Tous":
                 final_df = edited_df
             else:
                 df_not_in_view = df_raw.drop(df_display.index)
-                final_df = pd.concat([df_not_in_view, edited_df], ignore_index=True)
+                final_df = pd.concat(
+                    [df_not_in_view, edited_df],
+                    ignore_index=True
+                )
+
             save_data(final_df)
             st.rerun()
 
     with col_btn2:
-        st.download_button("📥 Télécharger Backup Excel", data=open(FILE_NAME, "rb"), file_name=FILE_NAME, use_container_width=True)
+
+        st.download_button(
+            "📥 Télécharger Backup Excel",
+            data=open(FILE_NAME, "rb"),
+            file_name=FILE_NAME,
+            use_container_width=True
+        )
 
     st.markdown("---")
+
     st.subheader("🌐 Aperçu global (Base de données)")
+
     st.dataframe(df_raw, use_container_width=True)
 
 # =========================================================
 # FENÊTRE 2: GÉNÉRATEUR DE DEVIS
 # =========================================================
 elif page == "Générateur de Devis 📄":
+
     try:
-        df_base = pd.read_excel("Clas.xlsx", sheet_name="lista_items")
+        df_base = pd.read_excel(
+            "Clas.xlsx",
+            sheet_name="lista_items"
+        )
+
     except:
-        df_base = pd.DataFrame(columns=['Code article', 'Désignation', 'P.U. HT (MAD)'])
+        df_base = pd.DataFrame(
+            columns=[
+                'Code article',
+                'Désignation',
+                'P.U. HT (MAD)'
+            ]
+        )
 
     class PropMedPDF(FPDF):
+
         def header(self):
-            self.set_font('Arial', 'B', 22); self.set_text_color(26, 78, 138)
+
+            self.set_font('Arial', 'B', 22)
+            self.set_text_color(26, 78, 138)
+
             self.text(10, 22, "PropMed")
-            self.set_font('Arial', '', 9); self.set_text_color(100, 100, 100)
+
+            self.set_font('Arial', '', 9)
+            self.set_text_color(100, 100, 100)
+
             self.text(10, 28, "Solar Solutions - Tanger, Maroc")
-            self.set_fill_color(26, 78, 138); self.rect(110, 10, 90, 25, 'F')
-            self.set_text_color(255, 255, 255); self.set_font('Arial', 'B', 16)
-            self.set_xy(110, 15); self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '---')}", 0, 1, 'C')
 
-    if 'devis_items' not in st.session_state: st.session_state.devis_items = []
+            self.set_fill_color(26, 78, 138)
+            self.rect(110, 10, 90, 25, 'F')
 
-    st.markdown("<h1 class='main-title'>📄 Création de Devis</h1>", unsafe_allow_html=True)
-    
-    with st.container():
-        st.session_state.devis_no = st.text_input("N° Devis", "042110")
-        client_name = st.text_input("Nom du Client", "Client")
-        
+            self.set_text_color(255, 255, 255)
+            self.set_font('Arial', 'B', 16)
+
+            self.set_xy(110, 15)
+
+            self.cell(
+                90,
+                10,
+                f"DEVIS : {st.session_state.get('devis_no', '---')}",
+                0,
+                1,
+                'C'
+            )
+
+    if 'devis_items' not in st.session_state:
+        st.session_state.devis_items = []
+
+    st.markdown(
+        "<h1 class='main-title'>📄 Création de Devis</h1>",
+        unsafe_allow_html=True
+    )
+
+    # CARD CLIENT
+    st.markdown("""
+    <div style="
+        background:white;
+        padding:20px;
+        border-radius:20px;
+        border:1px solid #e5e7eb;
+        margin-bottom:20px;
+        box-shadow:0 4px 20px rgba(0,0,0,0.04);
+    ">
+    """, unsafe_allow_html=True)
+
+    st.session_state.devis_no = st.text_input(
+        "N° Devis",
+        "042110"
+    )
+
+    client_name = st.text_input(
+        "Nom du Client",
+        "Client"
+    )
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
     st.divider()
-    mode_ajout = st.radio("Mode d'ajout :", ["Sélectionner depuis la base", "Saisie manuelle"])
+
+    mode_ajout = st.radio(
+        "Mode d'ajout :",
+        [
+            "Sélectionner depuis la base",
+            "Saisie manuelle"
+        ]
+    )
 
     if mode_ajout == "Sélectionner depuis la base":
+
         if not df_base.empty:
-            code_sel = st.selectbox("Sélectionner un article", df_base['Code article'].unique())
-            qte_sel = st.number_input("Quantité", min_value=1, value=1)
+
+            code_sel = st.selectbox(
+                "Sélectionner un article",
+                df_base['Code article'].unique()
+            )
+
+            qte_sel = st.number_input(
+                "Quantité",
+                min_value=1,
+                value=1
+            )
+
             if st.button("➕ Ajouter l'article"):
-                row = df_base[df_base['Code article'] == code_sel].iloc[0]
+
+                row = df_base[
+                    df_base['Code article'] == code_sel
+                ].iloc[0]
+
                 st.session_state.devis_items.append({
-                    "Code": code_sel, "Désignation": row['Désignation'], "Quantité": qte_sel,
-                    "P.U. HT": row['P.U. HT (MAD)'], "Montant HT": qte_sel * row['P.U. HT (MAD)']
+                    "Code": code_sel,
+                    "Désignation": row['Désignation'],
+                    "Quantité": qte_sel,
+                    "P.U. HT": row['P.U. HT (MAD)'],
+                    "Montant HT": qte_sel * row['P.U. HT (MAD)']
                 })
+
                 st.rerun()
+
     else:
+
         m_code = st.text_input("Code Article")
         m_desc = st.text_input("Désignation")
-        m_pu = st.number_input("P.U. HT (MAD)", min_value=0.0)
-        m_qte = st.number_input("Quantité", min_value=1)
+
+        m_pu = st.number_input(
+            "P.U. HT (MAD)",
+            min_value=0.0
+        )
+
+        m_qte = st.number_input(
+            "Quantité",
+            min_value=1
+        )
+
         if st.button("➕ Ajouter manuellement"):
+
             st.session_state.devis_items.append({
-                "Code": m_code, "Désignation": m_desc, "Quantité": m_qte, "P.U. HT": m_pu, "Montant HT": m_qte * m_pu
+                "Code": m_code,
+                "Désignation": m_desc,
+                "Quantité": m_qte,
+                "P.U. HT": m_pu,
+                "Montant HT": m_qte * m_pu
             })
+
             st.rerun()
 
     if st.session_state.devis_items:
-        df_devis = pd.DataFrame(st.session_state.devis_items)
-        edited_devis = st.data_editor(df_devis, use_container_width=True)
-        
+
+        df_devis = pd.DataFrame(
+            st.session_state.devis_items
+        )
+
+        edited_devis = st.data_editor(
+            df_devis,
+            use_container_width=True
+        )
+
         total_ht = edited_devis['Montant HT'].sum()
         total_ttc = total_ht * 1.2
 
+        # TOTAL CARDS
+        c1, c2 = st.columns(2)
+
+        with c1:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-title">TOTAL HT</div>
+                <div class="metric-value">{total_ht:,.2f} MAD</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with c2:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-title">TOTAL TTC</div>
+                <div class="metric-value">{total_ttc:,.2f} MAD</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
         col_final1, col_final2 = st.columns(2)
+
         with col_final1:
-            if st.button("📄 Générer le Devis PDF", use_container_width=True):
+
+            if st.button(
+                "📄 Générer le Devis PDF",
+                use_container_width=True
+            ):
                 st.success("PDF Généré (Simulation)")
+
         with col_final2:
-            if st.button("🗑️ Vider la liste", use_container_width=True):
+
+            if st.button(
+                "🗑️ Vider la liste",
+                use_container_width=True
+            ):
+
                 st.session_state.devis_items = []
                 st.rerun()
