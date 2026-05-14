@@ -29,68 +29,65 @@ html, body, [class*="css"] {
 }
 
 /* =====================================================
-   SIDEBAR
+   SIDEBAR BASE
 ===================================================== */
-[data-testid="stSidebar"] {
+section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0f172a, #1e293b) !important;
     border-right: 1px solid rgba(255,255,255,0.08);
 }
 
-[data-testid="stSidebar"] * {
+/* Force ALL sidebar text white */
+section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
 /* =====================================================
-   RADIO + FILTER TEXT FIX
+   NAVIGATION FIX (IMPORTANT)
 ===================================================== */
 
-/* Texte navigation */
-.stRadio label,
-.stSelectbox label,
-.stMultiSelect label,
-.stTextInput label,
-.stNumberInput label {
+/* radio text */
+section[data-testid="stSidebar"] div[role="radiogroup"] label,
+section[data-testid="stSidebar"] div[role="radiogroup"] span,
+section[data-testid="stSidebar"] div[role="radiogroup"] p {
     color: white !important;
     font-weight: 600 !important;
 }
 
-/* Texte داخل selectbox */
-.stSelectbox div,
-.stMultiSelect div {
-    color: #0f172a !important;
-}
-
-/* Navigation radio options */
-[data-baseweb="radio"] div {
-    color: white !important;
-}
-
-/* Sidebar headings */
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3,
-[data-testid="stSidebar"] h4,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span {
-    color: white !important;
-}
-
-/* Fix menu radio selected */
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label {
-    background: rgba(255,255,255,0.08);
+/* radio item style */
+section[data-testid="stSidebar"] div[role="radiogroup"] label {
+    background: rgba(255,255,255,0.06);
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 6px;
-    transition: 0.3s;
+    transition: 0.25s;
 }
 
-/* Hover */
-[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover {
+/* hover */
+section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
     background: rgba(255,255,255,0.15);
 }
 
 /* =====================================================
-   TITRES
+   FILTERS FIX
+===================================================== */
+
+/* labels */
+.stSelectbox label,
+.stMultiSelect label,
+.stTextInput label,
+.stNumberInput label,
+.stRadio label {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* selectbox text */
+.stSelectbox div {
+    color: #0f172a !important;
+}
+
+/* =====================================================
+   TITLES
 ===================================================== */
 .main-title {
     color: #0f172a;
@@ -99,11 +96,10 @@ html, body, [class*="css"] {
     margin-bottom: 10px;
     padding-bottom: 12px;
     border-bottom: 4px solid #2563eb;
-    letter-spacing: 0.5px;
 }
 
 /* =====================================================
-   CARDS / FORMS
+   CARDS
 ===================================================== */
 div[data-testid="stForm"],
 div.stExpander {
@@ -112,20 +108,18 @@ div.stExpander {
     padding: 22px !important;
     border: 1px solid rgba(0,0,0,0.06) !important;
     box-shadow: 0 10px 25px rgba(15,23,42,0.06) !important;
-    backdrop-filter: blur(6px);
 }
 
 /* =====================================================
    INPUTS
 ===================================================== */
+input, textarea {
+    border-radius: 12px !important;
+}
+
 .stTextInput input,
-.stNumberInput input,
-.stSelectbox div[data-baseweb="select"],
-.stTextArea textarea {
-    border-radius: 14px !important;
+.stNumberInput input {
     border: 1px solid #dbe4ee !important;
-    background-color: white !important;
-    padding: 10px !important;
 }
 
 .stTextInput input:focus,
@@ -146,14 +140,13 @@ textarea:focus {
     font-weight: 700 !important;
     border: none !important;
     padding: 0.7rem 1rem !important;
-    transition: all 0.25s ease !important;
+    transition: 0.25s;
     box-shadow: 0 4px 14px rgba(37,99,235,0.25);
 }
 
 .stButton > button:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
-    box-shadow: 0 10px 22px rgba(37,99,235,0.35);
 }
 
 /* =====================================================
@@ -165,36 +158,17 @@ textarea:focus {
     background: linear-gradient(135deg, #059669, #047857) !important;
     color: white !important;
     font-weight: 700 !important;
-    border: none !important;
-    padding: 0.7rem 1rem !important;
 }
 
 /* =====================================================
    DATAFRAME
 ===================================================== */
 [data-testid="stDataFrame"] {
-    background-color: white;
+    background: white;
     border-radius: 20px;
     padding: 10px;
     border: 1px solid #e5e7eb;
     box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-}
-
-/* =====================================================
-   ALERTS
-===================================================== */
-.stAlert {
-    border-radius: 14px !important;
-}
-
-/* =====================================================
-   RADIO STYLE
-===================================================== */
-.stRadio > div {
-    background: white;
-    padding: 14px;
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
 }
 
 /* =====================================================
@@ -205,8 +179,8 @@ textarea:focus {
     padding: 18px;
     border-radius: 18px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
 
 .metric-title {
@@ -219,7 +193,6 @@ textarea:focus {
     color: #0f172a;
     font-size: 28px;
     font-weight: 800;
-    margin-top: 8px;
 }
 
 /* =====================================================
@@ -229,8 +202,7 @@ hr {
     border: none;
     height: 1px;
     background: #dbe4ee;
-    margin-top: 25px;
-    margin-bottom: 25px;
+    margin: 25px 0;
 }
 
 </style>
