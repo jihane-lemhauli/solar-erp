@@ -46,11 +46,11 @@ df_inventaire = pd.DataFrame()
 
 if conn:
     try:
-        # جلب قائمة العملاء للفيلتر
+        # Récupérer les noms des clients pour le filtre latéral
         df_c = pd.read_sql("SELECT DISTINCT nom_client FROM Clients ORDER BY nom_client ASC", conn)
         clients_list += df_c['nom_client'].tolist()
         
-        # جلب بيانات المخزون
+        # Récupérer les données de l'inventaire
         df_inventaire = pd.read_sql("SELECT * FROM Inventaire", conn)
     except:
         pass
@@ -62,7 +62,7 @@ if conn:
 # -------------------------
 st.sidebar.title("🔍 Filtres de recherche")
 
-# الفيلتر بسميت العميل في الجنب
+# Remplacement du filtre Shipment par la Liste des Clients
 client_filtre = st.sidebar.selectbox("Filtrer par Client", options=clients_list)
 
 statut_filtre = st.sidebar.selectbox("Filtrer par Statut", options=["Tous", "En cours", "Livré", "En attente"])
@@ -76,29 +76,22 @@ if st.sidebar.button("🚪 Déconnexion"):
 # -------------------------
 st.title("📦 Gestion de l'inventaire")
 
-# 7️⃣ LOGIQUE DE FILTRAGE ET ORGANISATION DU TABLEAU
-if not df_inventaire.empty:
-    df_affichage = df_inventaire.copy()
+# 7️⃣ LOGIQUE DE FILTRAGE
+df_affichage = df_inventaire.copy()
 
-    # تطبيق الفلتر
+if not df_affichage.empty:
+    # Filtrer par le client sélectionné dans la barre latérale
     if client_filtre != "Tous les clients":
+        # On utilise la colonne 'client_concerne' pour faire la correspondance
         df_affichage = df_affichage[df_affichage['client_concerne'] == client_filtre]
     
+    # Filtre par Statut (si la colonne existe dans votre table)
     if statut_filtre != "Tous" and 'statut' in df_affichage.columns:
         df_affichage = df_affichage[df_affichage['statut'] == statut_filtre]
 
-    # --- الترتيب: العميل هو الأول قبل Shipment ---
-    if 'client_concerne' in df_affichage.columns:
-        # تغيير الإسم للعرض وتغيير ترتيب الأعمدة
-        df_affichage = df_affichage.rename(columns={'client_concerne': 'Client'})
-        
-        # وضع عمود Client في المركز الأول
-        cols = ['Client'] + [c for c in df_affichage.columns if c != 'Client']
-        df_affichage = df_affichage[cols]
-
     st.write(f"Affichage de **{len(df_affichage)}** lignes après filtrage.")
     
-    # عرض الجدول النهائي
+    # Affichage du tableau final
     st.dataframe(df_affichage, use_container_width=True, hide_index=True)
 else:
     st.info("Aucune donnée d'inventaire disponible.")
