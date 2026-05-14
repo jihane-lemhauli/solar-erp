@@ -18,108 +18,82 @@ st.markdown("""
 <style>
 
 /* =====================================================
-   GLOBAL
+   GLOBAL BACKGROUND FIX
 ===================================================== */
-html, body, [class*="css"] {
-    font-family: 'Segoe UI', sans-serif;
-}
-
 .stApp {
-    background: linear-gradient(to bottom right, #f4f7fb, #eef2f7);
+    background: linear-gradient(135deg, #eef2f7, #e8edf5) !important;
+    color: #0f172a;
 }
 
 /* =====================================================
-   SIDEBAR BASE
+   SIDEBAR FIX (NAVIGATION + FILTERS)
 ===================================================== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0f172a, #1e293b) !important;
-    border-right: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Force ALL sidebar text white */
 section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* =====================================================
-   NAVIGATION FIX (IMPORTANT)
-===================================================== */
-
-/* radio text */
-section[data-testid="stSidebar"] div[role="radiogroup"] label,
-section[data-testid="stSidebar"] div[role="radiogroup"] span,
-section[data-testid="stSidebar"] div[role="radiogroup"] p {
-    color: white !important;
-    font-weight: 600 !important;
-}
-
-/* radio item style */
+/* Navigation (radio) */
 section[data-testid="stSidebar"] div[role="radiogroup"] label {
     background: rgba(255,255,255,0.06);
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 6px;
-    transition: 0.25s;
+    font-weight: 600;
 }
 
-/* hover */
 section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
     background: rgba(255,255,255,0.15);
 }
 
-/* =====================================================
-   FILTERS FIX
-===================================================== */
-
-/* labels */
-.stSelectbox label,
-.stMultiSelect label,
-.stTextInput label,
-.stNumberInput label,
-.stRadio label {
+/* Filters fix */
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stTextInput label,
+section[data-testid="stSidebar"] .stNumberInput label {
     color: white !important;
-    font-weight: 600 !important;
-}
-
-/* selectbox text */
-.stSelectbox div {
-    color: #0f172a !important;
+    font-weight: 600;
 }
 
 /* =====================================================
-   TITLES
+   MAIN TITLES FIX
 ===================================================== */
 .main-title {
-    color: #0f172a;
+    color: #0f172a !important;
     font-size: 34px;
     font-weight: 800;
-    margin-bottom: 10px;
-    padding-bottom: 12px;
     border-bottom: 4px solid #2563eb;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
 }
 
 /* =====================================================
-   CARDS
+   CARDS / FORMS FIX (IMPORTANT FOR DEVIS)
 ===================================================== */
 div[data-testid="stForm"],
 div.stExpander {
-    background: rgba(255,255,255,0.95) !important;
-    border-radius: 22px !important;
-    padding: 22px !important;
-    border: 1px solid rgba(0,0,0,0.06) !important;
-    box-shadow: 0 10px 25px rgba(15,23,42,0.06) !important;
+    background: #ffffff !important;
+    border-radius: 18px !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
+    padding: 20px !important;
 }
 
 /* =====================================================
-   INPUTS
+   INPUTS FIX (VERY IMPORTANT)
 ===================================================== */
 input, textarea {
-    border-radius: 12px !important;
+    color: #0f172a !important;
 }
 
 .stTextInput input,
-.stNumberInput input {
+.stNumberInput input,
+.stSelectbox div {
+    background: white !important;
     border: 1px solid #dbe4ee !important;
+    color: #0f172a !important;
 }
 
 .stTextInput input:focus,
@@ -129,70 +103,72 @@ textarea:focus {
     box-shadow: 0 0 0 3px rgba(37,99,235,0.15) !important;
 }
 
+/* Labels fix everywhere */
+label {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
 /* =====================================================
-   BUTTONS
+   RADIO (MODE AJOUT FIX)
+===================================================== */
+.stRadio label {
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 10px;
+    color: #0f172a !important;
+}
+
+/* =====================================================
+   BUTTONS FIX
 ===================================================== */
 .stButton > button {
-    width: 100%;
-    border-radius: 14px !important;
     background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
     color: white !important;
+    border-radius: 12px !important;
     font-weight: 700 !important;
     border: none !important;
-    padding: 0.7rem 1rem !important;
-    transition: 0.25s;
-    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+    padding: 0.6rem 1rem !important;
 }
 
 .stButton > button:hover {
     transform: translateY(-2px);
-    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
 }
 
-/* =====================================================
-   DOWNLOAD BUTTON
-===================================================== */
+/* Download button */
 .stDownloadButton > button {
-    width: 100%;
-    border-radius: 14px !important;
     background: linear-gradient(135deg, #059669, #047857) !important;
     color: white !important;
-    font-weight: 700 !important;
+    border-radius: 12px !important;
 }
 
 /* =====================================================
-   DATAFRAME
+   DATA TABLE / EDITOR FIX
 ===================================================== */
-[data-testid="stDataFrame"] {
-    background: white;
-    border-radius: 20px;
-    padding: 10px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+[data-testid="stDataFrame"],
+[data-testid="stDataEditor"] {
+    background: white !important;
+    border-radius: 16px !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
 }
 
 /* =====================================================
-   KPI CARDS
+   KPI CARDS FIX
 ===================================================== */
 .metric-card {
-    background: white;
-    padding: 18px;
-    border-radius: 18px;
+    background: white !important;
+    border-radius: 16px;
     border: 1px solid #e5e7eb;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 .metric-title {
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 600;
+    color: #64748b !important;
 }
 
 .metric-value {
-    color: #0f172a;
-    font-size: 28px;
-    font-weight: 800;
+    color: #0f172a !important;
 }
 
 /* =====================================================
@@ -202,7 +178,6 @@ hr {
     border: none;
     height: 1px;
     background: #dbe4ee;
-    margin: 25px 0;
 }
 
 </style>
