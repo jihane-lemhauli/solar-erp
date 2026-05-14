@@ -32,11 +32,11 @@ section[data-testid="stSidebar"] * {
     color: white !important;
 }
 
-/* Fix Inputs f Sidebar (Hada houwa l-fix dyal dik l-byad f les filtres) */
+/* Fix Inputs f Sidebar */
 section[data-testid="stSidebar"] div[data-baseweb="select"], 
 section[data-testid="stSidebar"] div[data-baseweb="base-input"],
 section[data-testid="stSidebar"] input {
-    background-color: #1e293b !important; /* Rej3nah ghameq bach tban ktaba */
+    background-color: #1e293b !important;
     color: white !important;
     border: 1px solid #334155 !important;
 }
@@ -59,7 +59,7 @@ section[data-testid="stSidebar"] input {
     border: 1px solid #e5e7eb;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     padding: 20px;
-    text-align: center; /* Nombres au milieu */
+    text-align: center;
 }
 
 .metric-title {
@@ -153,38 +153,38 @@ if st.sidebar.button("Déconnexion 🚪", use_container_width=True):
 # =========================================================
 # FENÊTRE 1: GESTION INVENTAIRE
 # =========================================================
+FILE_NAME = "Inventaire.xlsx"
+
+def calculate_metrics(df_to_calc):
+    if df_to_calc is None or df_to_calc.empty: return df_to_calc
+    cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
+    for col in cols_to_fix:
+        if col in df_to_calc.columns:
+            df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
+    if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
+        df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
+    return df_to_calc
+
+def load_data():
+    if os.path.exists(FILE_NAME):
+        try:
+            df = pd.read_excel(FILE_NAME, engine='openpyxl')
+            if "Client" not in df.columns: df.insert(0, "Client", "Client Inconnu")
+            if "Status" not in df.columns: df["Status"] = "En attente"
+            return calculate_metrics(df)
+        except: return pd.DataFrame()
+    else:
+        columns = ["Client", "Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "Status"]
+        return pd.DataFrame(columns=columns)
+
+def save_data(df_to_save):
+    df_final_save = calculate_metrics(df_to_save)
+    df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
+    st.success(f"✅ Sauvegardé !")
+
+df_raw = load_data()
+
 if page == "Gestion Inventaire 📦":
-    FILE_NAME = "Inventaire.xlsx"
-
-    def calculate_metrics(df_to_calc):
-        if df_to_calc is None or df_to_calc.empty: return df_to_calc
-        cols_to_fix = ["Quantity Ordered", "Quantity Used", "Quantity in Inventory"]
-        for col in cols_to_fix:
-            if col in df_to_calc.columns:
-                df_to_calc[col] = pd.to_numeric(df_to_calc[col], errors="coerce").fillna(0)
-        if "Quantity Ordered" in df_to_calc.columns and "Quantity Used" in df_to_calc.columns:
-            df_to_calc["Quantity in Inventory"] = df_to_calc["Quantity Ordered"] - df_to_calc["Quantity Used"]
-        return df_to_calc
-
-    def load_data():
-        if os.path.exists(FILE_NAME):
-            try:
-                df = pd.read_excel(FILE_NAME, engine='openpyxl')
-                if "Client" not in df.columns: df.insert(0, "Client", "Client Inconnu")
-                if "Status" not in df.columns: df["Status"] = "En attente"
-                return calculate_metrics(df)
-            except: return pd.DataFrame()
-        else:
-            columns = ["Client", "Shipment No.", "Item Ref", "Item No.", "Description", "Quantity Ordered", "Quantity Used", "Quantity in Inventory", "Unit", "Status"]
-            return pd.DataFrame(columns=columns)
-
-    def save_data(df_to_save):
-        df_final_save = calculate_metrics(df_to_save)
-        df_final_save.to_excel(FILE_NAME, index=False, engine='openpyxl')
-        st.success(f"✅ Sauvegardé !")
-
-    df_raw = load_data()
-
     # --- FILTRES ---
     st.sidebar.subheader("🔍 Filtres")
     all_clients = ["Tous"] + sorted(df_raw["Client"].unique().astype(str).tolist())
@@ -199,7 +199,6 @@ if page == "Gestion Inventaire 📦":
 
     st.markdown("<h1 class='main-title'>📦 Gestion de l'Inventaire & Clients</h1>", unsafe_allow_html=True)
 
-    # KPI DESIGN (CENTRED)
     colk1, colk2, colk3 = st.columns(3)
     with colk1:
         st.markdown(f'<div class="metric-card"><div class="metric-title">Clients</div><div class="metric-value">{df_raw["Client"].nunique()}</div></div>', unsafe_allow_html=True)
@@ -211,7 +210,7 @@ if page == "Gestion Inventaire 📦":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.expander("➕ Ajouter ou Modifier une ligne (Client/Shipment)"):
+    with st.expander("➕ Ajouter ou Modifier une ligne"):
         with st.form("add_form"):
             c1, c2, c3 = st.columns(3)
             new_client = c1.text_input("Nom du Client")
@@ -243,10 +242,6 @@ if page == "Gestion Inventaire 📦":
         if os.path.exists(FILE_NAME):
             st.download_button("📥 Télécharger Backup Excel", data=open(FILE_NAME, "rb"), file_name=FILE_NAME, use_container_width=True)
 
-    st.markdown("---")
-    st.subheader("🌐 Aperçu global (Base de données)")
-    st.dataframe(df_raw, use_container_width=True)
-
 # =========================================================
 # FENÊTRE 2: GÉNÉRATEUR DE DEVIS
 # =========================================================
@@ -262,7 +257,14 @@ elif page == "Générateur de Devis 📄":
 
     st.markdown('<div style="background:white; padding:20px; border-radius:20px; border:1px solid #e5e7eb; margin-bottom:20px; box-shadow:0 4px 20px rgba(0,0,0,0.04);">', unsafe_allow_html=True)
     st.session_state.devis_no = st.text_input("N° Devis", "042110")
-    client_name = st.text_input("Nom du Client", "Client")
+    
+    # --- MODIFICATION ICI : Récupérer les clients existants ---
+    clients_existants = sorted(df_raw["Client"].unique().astype(str).tolist())
+    
+    client_name = st.selectbox(
+        "Sélectionner le Client (ou taper son nom)",
+        clients_existants
+    )
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.divider()
@@ -301,7 +303,7 @@ elif page == "Générateur de Devis 📄":
         col_final1, col_final2 = st.columns(2)
         with col_final1:
             if st.button("📄 Générer le Devis PDF", use_container_width=True):
-                st.success("PDF Généré (Simulation)")
+                st.success(f"Devis PDF pour {client_name} en cours (Simulation)")
         with col_final2:
             if st.button("🗑️ Vider la liste", use_container_width=True):
                 st.session_state.devis_items = []
