@@ -1,6 +1,6 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
+import os
 
 # ---------------------------------------------------------
 # 1️⃣ CONFIGURATION DE LA PAGE
@@ -8,14 +8,21 @@ import pandas as pd
 st.set_page_config(page_title="ERP Solaire - Gestion de l'inventaire", layout="wide")
 
 # ---------------------------------------------------------
-# 2️⃣ CONNEXION À LA BASE DE DONNÉES
+# 2️⃣ FONCTION POUR CHARGER L'EXCEL
 # ---------------------------------------------------------
-def obtenir_connexion():
-    try:
-        return sqlite3.connect('database.db', check_same_thread=False)
-    except Exception as e:
-        st.error(f"Erreur de connexion : {e}")
-        return None
+@st.cache_data # Pour que l'app soit rapide
+def charger_donnees():
+    nom_fichier = "Inventaire.xlsx" # Doit correspondre exactement au nom sur GitHub
+    if os.path.exists(nom_fichier):
+        try:
+            df = pd.read_excel(nom_fichier)
+            return df
+        except Exception as e:
+            st.error(f"Erreur de lecture : {e}")
+            return pd.DataFrame()
+    else:
+        st.error(f"Fichier '{nom_fichier}' introuvable.")
+        return pd.DataFrame()
 
 # -------------------------
 # 3️⃣ AUTHENTIFICATION
@@ -24,7 +31,7 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 if not st.session_state.logged_in:
-    st.markdown("<h2 style='text-align: center; color: #1e3a8a;'>🔐 Connexion au Système ERP</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🔐 Connexion au Système ERP</h2>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1, 1])
     with col2:
         user = st.text_input("Nom d'utilisateur")
@@ -38,69 +45,59 @@ if not st.session_state.logged_in:
     st.stop()
 
 # -------------------------
-# 4️⃣ CHARGEMENT DES DONNÉES
+# 4️⃣ TRAITEMENT DES FILTRES
 # -------------------------
-conn = obtenir_connexion()
-clients_list = ["Tous les clients"]
-df_inventaire = pd.DataFrame()
+df_global = charger_donnees()
 
-if conn:
-    try:
-        # Récupérer les noms des clients pour le filtre latéral
-        df_c = pd.read_sql("SELECT DISTINCT nom_client FROM Clients ORDER BY nom_client ASC", conn)
-        clients_list += df_c['nom_client'].tolist()
-        
-        # Récupérer les données de l'inventaire
-        df_inventaire = pd.read_sql("SELECT * FROM Inventaire", conn)
-    except:
-        pass
-    finally:
-        conn.close()
+# Sidebar
+st.sidebar.header("🔍 Filtres de recherche")
 
-# -------------------------
-# 5️⃣ BARRE LATÉRALE (FILTRES)
-# -------------------------
-st.sidebar.title("🔍 Filtres de recherche")
-
-# Remplacement du filtre Shipment par la Liste des Clients
-client_filtre = st.sidebar.selectbox("Filtrer par Client", options=clients_list)
-
-statut_filtre = st.sidebar.selectbox("Filtrer par Statut", options=["Tous", "En cours", "Livré", "En attente"])
+if not df_global.empty:
+    # Liste des clients unique
+    liste_clients = ["Tous les clients"] + sorted(df_global['Client'].dropna().unique().tolist())
+    client_filtre = st.sidebar.selectbox("Filtrer par Client", options=liste_clients)
+    
+    # Liste des statuts (si la colonne existe)
+    if 'Statut' in df_global.columns:
+        liste_statuts = ["Tous"] + sorted(df_global['Statut'].dropna().unique().tolist())
+    else:
+        liste_statuts = ["Tous"]
+    statut_filtre = st.sidebar.selectbox("Filtrer par Statut", options=liste_statuts)
+else:
+    client_filtre = "Tous les clients"
+    statut_filtre = "Tous"
 
 if st.sidebar.button("🚪 Déconnexion"):
     st.session_state.logged_in = False
     st.rerun()
 
 # -------------------------
-# 6️⃣ INTERFACE PRINCIPALE
+# 5️⃣ AFFICHAGE PRINCIPAL
 # -------------------------
 st.title("📦 Gestion de l'inventaire")
 
-# 7️⃣ LOGIQUE DE FILTRAGE
-df_affichage = df_inventaire.copy()
+if not df_global.empty:
+    df_affichage = df_global.copy()
 
-if not df_affichage.empty:
-    # Filtrer par le client sélectionné dans la barre latérale
+    # Appliquer les filtres
     if client_filtre != "Tous les clients":
-        # On utilise la colonne 'client_concerne' pour faire la correspondance
-        df_affichage = df_affichage[df_affichage['client_concerne'] == client_filtre]
+        df_affichage = df_affichage[df_affichage['Client'] == client_filtre]
     
-    # Filtre par Statut (si la colonne existe dans votre table)
-    if statut_filtre != "Tous" and 'statut' in df_affichage.columns:
-        df_affichage = df_affichage[df_affichage['statut'] == statut_filtre]
+    if statut_filtre != "Tous" and 'Statut' in df_affichage.columns:
+        df_affichage = df_affichage[df_affichage['Statut'] == statut_filtre]
 
-    st.write(f"Affichage de **{len(df_affichage)}** lignes après filtrage.")
-    
-    # Affichage du tableau final
+    st.info(f"Affichage de **{len(df_affichage)}** lignes après filtrage.")
     st.dataframe(df_affichage, use_container_width=True, hide_index=True)
 else:
-    st.info("Aucune donnée d'inventaire disponible.")
+    st.warning("Aucune donnée disponible dans le fichier Excel.")
 
 st.divider()
 
-# 8️⃣ BOUTONS D'ACTION
+# -------------------------
+# 6️⃣ BOUTONS D'ACTION
+# -------------------------
 c1, c2 = st.columns(2)
 with c1:
     st.button("💾 Sauvegarder directement sur Excel", use_container_width=True)
 with c2:
-    st.button("📩 Télécharger une copie de sauvegarde (Backup)", use_container_width=True)
+    st.button("📩 Télécharger une copie (Backup)", use_container_width=True)
