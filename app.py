@@ -89,6 +89,23 @@ div[data-testid="stForm"], div.stExpander {
     color: white !important;
     border-radius: 12px !important;
     font-weight: 700 !important;
+    border: none !important;
+}
+
+/* Bouton Téléchargement (Download) en Vert */
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    border: none !important;
+    padding: 0.6rem 1rem !important;
+    width: 100% !important;
+}
+
+.stDownloadButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
 </style>
@@ -175,6 +192,24 @@ def sauvegarder_donnees(df):
     st.success("✅ Données sauvegardées avec succès !")
 
 df_brut = charger_donnees()
+
+# =========================================================
+# CLASSE GENERATOR PDF (PropMed Style)
+# =========================================================
+class PropMedPDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 22)
+        self.set_text_color(26, 78, 138)
+        self.text(10, 22, "PropMed")
+        self.set_font('Arial', '', 9)
+        self.set_text_color(100, 100, 100)
+        self.text(10, 28, "Solar Solutions - Tanger, Maroc")
+        self.set_fill_color(26, 78, 138)
+        self.rect(110, 10, 90, 25, 'F')
+        self.set_text_color(255, 255, 255)
+        self.set_font('Arial', 'B', 14)
+        self.set_xy(110, 17)
+        self.cell(90, 10, f"DEVIS : {st.session_state.get('devis_no', '---')}", 0, 1, 'C')
 
 # =========================================================
 # MENU LATÉRAL
@@ -319,7 +354,7 @@ elif page == "Générateur de devis 📄":
 
     if st.session_state.devis_items:
         df_devis = pd.DataFrame(st.session_state.devis_items)
-        df_devis = st.data_editor(df_devis)
+        df_devis = st.data_editor(df_devis, use_container_width=True)
 
         total_ht = df_devis["Montant HT"].sum()
         total_ttc = total_ht * 1.2
@@ -332,13 +367,58 @@ elif page == "Générateur de devis 📄":
         with col2:
             st.markdown(f"<div class='metric-card'><div class='metric-title'>TOTAL TTC</div><div class='metric-value'>{total_ttc:,.2f} MAD</div></div>", unsafe_allow_html=True)
 
+        st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
 
         with col1:
-            if st.button("📄 Générer PDF"):
-                st.success(f"Devis prêt pour {client_final}")
+            # --- GÉNÉRATION RÉELLE DU PDF & TÉLÉCHARGEMENT ---
+            try:
+                pdf = PropMedPDF()
+                pdf.add_page()
+                pdf.set_y(45)
+                pdf.set_font('Arial', 'B', 12)
+                pdf.cell(100, 10, f"Client : {client_final}", 0, 1)
+                pdf.cell(100, 10, f"Date : {date.today().strftime('%d/%m/%Y')}", 0, 1)
+                pdf.ln(5)
+                
+                # Entête du Tableau
+                pdf.set_font('Arial', 'B', 10)
+                pdf.cell(30, 8, "Code", 1)
+                pdf.cell(75, 8, u"Désignation", 1)
+                pdf.cell(20, 8, "Qte", 1, 0, 'C')
+                pdf.cell(25, 8, "P.U. HT", 1, 0, 'C')
+                pdf.cell(40, 8, "Montant HT", 1, 1, 'C')
+                
+                # Remplissage des articles
+                pdf.set_font('Arial', '', 10)
+                for index, row in df_devis.iterrows():
+                    pdf.cell(30, 8, str(row['Code']), 1)
+                    pdf.cell(75, 8, str(row[u'Désignation']), 1)
+                    pdf.cell(20, 8, str(row[u'Quantité']), 1, 0, 'C')
+                    pdf.cell(25, 8, f"{row['P.U. HT']:,.2f}", 1, 0, 'C')
+                    pdf.cell(40, 8, f"{row['Montant HT']:,.2f}", 1, 1, 'C')
+                
+                pdf.ln(5)
+                pdf.set_font('Arial', 'B', 10)
+                pdf.cell(150, 8, "TOTAL HT", 1, 0, 'R')
+                pdf.cell(40, 8, f"{total_ht:,.2f} MAD", 1, 1, 'C')
+                pdf.cell(150, 8, "TOTAL TTC (Avec TVA 20%)", 1, 0, 'R')
+                pdf.cell(40, 8, f"{total_ttc:,.2f} MAD", 1, 1, 'C')
+                
+                # Encodage du PDF en bytes pour le bouton
+                pdf_output = pdf.output(dest='S').encode('latin-1')
+                
+                st.download_button(
+                    label="📥 Télécharger Devis PDF",
+                    data=pdf_output,
+                    file_name=f"Devis_{st.session_state.devis_no}_{client_final}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"Erreur lors de la génération du PDF: {e}")
 
         with col2:
-            if st.button("🗑️ Vider"):
+            if st.button("🗑️ Vider", use_container_width=True):
                 st.session_state.devis_items = []
                 st.rerun()
